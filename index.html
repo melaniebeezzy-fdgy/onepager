@@ -811,7 +811,7 @@ builders.resumen=function(){
   function nOrd(x){return x==null?'—':x.toLocaleString('es');}
   function vOrd(x){return x==null?'—':'$'+f1(x/1e6)+' M';}
   function tmetric(l,v){return '<div style="text-align:center"><div style="font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600">'+l+'</div><div style="font-size:14px;font-weight:800;color:var(--primary);margin-top:2px">'+v+'</div></div>';}
-  var tipoCard='<div class="card" style="background:#eef2f7;border:1px solid #2447681f;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:9px 14px">'+
+  var tipoCard='<div class="card" onclick="openMetric(\'https://docs.google.com/spreadsheets/d/1Mycjhli2BPZ2JsSqfy7z1DcsJFwRJm66sfKWO7NvTpU/edit?gid=2024624108#gid=2024624108\')" title="Ver clasificación de cocinas" style="cursor:pointer;background:#eef2f7;border:1px solid #2447681f;display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:9px 14px">'+
     '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">🍳</span><div><div style="font-size:9px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.4px">Tipo de cocina</div><div style="font-size:19px;font-weight:800;color:var(--primary);line-height:1;margin-top:2px">Tipo '+tipo+'</div></div></div>'+
     '<div style="flex:1;display:flex;gap:28px;justify-content:flex-end;flex-wrap:wrap">'+tmetric('📦 Órdenes / semana',nOrd(_od.w))+tmetric('🍽️ Órdenes / mes (al 22)',nOrd(_od.m))+tmetric('💵 Venta '+CUR,vOrd(_od.v))+'</div></div>';
   var RK={p:-1,r:0,a:1,g:2,n:3};
