@@ -802,7 +802,9 @@ var WEEKLY_WINDOW='';
 (function(){ /* la tarea semanal reemplaza este bloque con overrides de FCW_BYC/GAPB_BYC/GAPCMP_BYC/ACC_BYC/ROT_BYC */ })();
 /* === WEEKLY-REFRESH END === */
 /* === APPS-REFRESH START · no editar a mano; lo regenera la tarea diaria de apps (Gestión Operativa + Capacitaciones) === */
-(function(){ /* la tarea diaria de apps reemplaza este bloque con overrides de GO_BYC y CAP_BYC */ })();
+/* Actualizado 2026-08-26. Gestión Operativa (kitchen-operations-hub) no disponible en este run: la app exigió login; GO_BYC sin cambios. Capacitaciones: General% por cocina. */
+var _CAPW={COL:{'SantaFe - Medellin':100,'Parque 93':100,'Envigado':100,'Cartagena':100,'Laureles':100,'Titan':100,'Plaza Claro Cinnabon':100,'Salvio':100,'Colina':98,'Arrecife':93,'Usaquén':93,'Manila':91,'Plaza Claro Court':88,'Pereira':88,'Chía':85,'Cedritos':84,'Bello':83,'Bucaramanga':82,'Engativá':80,'Barranquilla':79,'Chapinero':78,'Villa del Prado':78,'Santa Monica':78,'Veraguas':76,'San Fernando':73,'Kennedy':73,'Ingenio':70,'Andes':65,'Calle 109':59,'SantaFe - Bogota':59,'Itagüí':23,'Chico':20},MEX:{'Coapa':100,'Churubusco':100,'Iztapalapa':100,'Esmeralda':100,'Doctores':100,'Metepec':100,'Tec':100,'Samara':100,'San Ángel':100,'Santa Fe':100,'Jardines':100,'Azcapotzalco':100,'Monterrey Centro':100,'Carretera Nacional':100,'Tlaquepaque':100,'Del Valle':99,'Ciudad Judicial':100,'Santa Catarina':95,'Estadio':92,'Polanco':91,'Satélite':88,'Volcanes':86,'Tabachines':84,'Lindavista':83,'Saltillo Centro':82,'San Nicolás':74,'La Calma':70,'Santa Teresita':69,'Lincoln':66,'San Jerónimo':60,'Montejo':59,'Centtral Interlomas':58,'Jardines del Valle':58,'Manacar':56,'Cumbres':55,'Pedregal':55,'Canek':55},PER:{'San Isidro':81,'La Molina':14,'Gonzales Prada':13,'Surquillo':10,'La Alborada':7}};
+(function(){for(var c in _CAPW){if(!CAP_BYC[c])continue;for(var k in _CAPW[c]){if(k in CAP_BYC[c])CAP_BYC[c][k]=_CAPW[c][k];}}})();
 /* === APPS-REFRESH END === */
 builders.resumen=function(){
   var isCoc=true;
