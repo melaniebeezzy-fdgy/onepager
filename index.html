@@ -192,7 +192,7 @@ td.num,th.num{text-align:right}
 
 <!-- TOP BAR -->
 <div id="top">
-  <div class="ttl">One pager 360° <span id="crumb"></span> <a href="/admin" title="Actualización manual de KPIs" style="font-size:11px;color:#9aa7cc;text-decoration:none;font-weight:400;margin-left:10px">⚙ admin</a></div>
+  <div class="ttl">One pager 360° <span id="crumb"></span></div>
   <div class="spacer"></div>
   <select id="opsSel" class="scopesel" onchange="setOps(this.value)" title="Filtrar por Ops Manager"></select>
   <select id="scopeSel" class="scopesel" onchange="setScope(this.value)"></select>
@@ -775,7 +775,17 @@ var METRIC_LINK={
 };
 function openMetric(u){window.open(u,'_blank');}
 function turboPopup(){var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(9,14,62,.45);z-index:9999;display:flex;align-items:center;justify-content:center';function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:22px 24px;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:inherit"><div style="font-weight:800;color:var(--primary);font-size:15px;margin-bottom:2px">⚡ Turbo (RTWT)</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Elige la fuente del dashboard</div><a href="https://dashboard-turbology.vercel.app/" target="_blank" style="display:block;text-align:center;background:var(--primary);color:#fff;text-decoration:none;padding:10px;border-radius:10px;font-weight:700;margin-bottom:8px">📦 Data Rappi</a><a href="https://app.powerbi.com/groups/1ea01bde-00b1-4e70-b1cf-0363dd3548e3/reports/5c3bccb2-51f3-45ea-b2ba-11c1bb6af973/1739120f64b78cda7971?experience=power-bi&language=en-US" target="_blank" style="display:block;text-align:center;background:#156082;color:#fff;text-decoration:none;padding:10px;border-radius:10px;font-weight:700">📊 Data interna (Power BI)</a><div style="text-align:center;margin-top:12px"><button type="button" class="tp-close" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">Cerrar</button></div></div>';ov.onclick=function(e){if(e.target===ov)close();};document.body.appendChild(ov);var b=ov.querySelector('.tp-close');if(b)b.onclick=close;}
+/* --- Frescura por KPI: cada tarjeta tiene una convención de cierre de semana y muestra "Pendiente" si su data aún no refleja la semana ya cerrada (data esperada el día siguiente al cierre). --- */
+var KPI_CLOSE=(typeof KPI_CLOSE!=='undefined'&&KPI_CLOSE)?KPI_CLOSE:{}; /* nombre -> 'YYYY-MM-DD' del sábado/domingo/lunes de cierre que refleja la data */
+var WEEK_DEF={'In Full':6,'Turbo (RTWT)':0,'Cancelaciones':0,'Accuracy':1,'FoodCost':1,'GAP Bono':1,'Rotación':0,'Gestión Operativa':0}; /* getDay(): 6=sáb,0=dom,1=lun */
+var WEEK_LABEL={6:'dom–sáb',0:'lun–dom',1:'mar–lun'};
+var DAILY_TOGGLE={'In Full':1,'Turbo (RTWT)':1,'Cancelaciones':1};
+function _pd(s){var p=String(s).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function _lastClose(cw,ref){var d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate());var diff=(d.getDay()-cw+7)%7;d.setDate(d.getDate()-diff);return d;}
+function _expClose(cw){var t=new Date();var y=new Date(t.getFullYear(),t.getMonth(),t.getDate()-1);return _lastClose(cw,y);}
+function isStale(name){if(!(name in WEEK_DEF))return false;if(DAILY_TOGGLE[name]&&typeof weekMode!=='undefined'&&weekMode==='curso')return false;var cd=KPI_CLOSE[name];if(!cd)return false;return _pd(cd).getTime()<_expClose(WEEK_DEF[name]).getTime();}
 function sumCard(sec,ic,name,value,detail,st,badge,dl,extra){
+  if(isStale(name)){value='—';badge='Pendiente';st='n';dl='';extra='';detail='Pendiente de actualización · semana '+(WEEK_LABEL[WEEK_DEF[name]]||'');}
   var sub=detail||'';
   var hasLink=(name==='Turbo (RTWT)'||!!METRIC_LINK[name]);
   var oc=(name==='Turbo (RTWT)')?'turboPopup()':(METRIC_LINK[name]?"openMetric('"+METRIC_LINK[name]+"')":"go('"+sec+"')");
@@ -811,9 +821,7 @@ function mobj(byc,src){for(var c in src){if(!byc[c])continue;for(var k in src[c]
 mnum(ACC_BYC,_ACC);mnum(ACCP_BYC,_ACCP);mobj(FCW_BYC,_FCW);mobj(GAPB_BYC,_GAPB);mobj(GAPCMP_BYC,_GAPCMP);mobj(ROT_BYC,_ROT);mnum(ROTP_BYC,_ROTP);})();
 /* === WEEKLY-REFRESH END === */
 /* === ADMIN-REFRESH START · lo actualiza la vista /admin (Accuracy, GAP Weekly, GAP MTD). Overrides manuales; se aplican después de la tarea semanal y ganan sobre ella. === */
-/* admin 2026-09-02 · Accuracy per 46265 */
-var _ADM_ACC={"COL":{"Usaquén":97.63,"Parque 93":91.84,"Chapinero":91.85,"Colina":94.98,"Andes":97.95,"Manila":73.65,"Laureles":82,"Chía":87.78,"Envigado":81.17,"Engativá":95.65,"Bello":90.83,"Santa Monica":77.12,"San Fernando":61.07,"Itagüí":89.25,"Barranquilla":79.85,"Cartagena":82.75,"Villa del Prado":91.94,"Kennedy":86.58,"Salvio":89.71,"Bucaramanga":75.51,"Veraguas":92.25,"Ingenio":68.09,"Chico":64.49,"Titan":96,"SantaFe - Bogota":96.12,"SantaFe - Medellin":92.14,"Calle 109":68,"Plaza Claro Cinnabon":78.33,"Plaza Claro Court":83.16,"Arrecife":88.93,"Cedritos":91.99},"MEX":{"Doctores":80.21,"San Ángel":73.6,"Polanco":73.54,"Santa Fe":82.4,"Coapa":83.2,"Satélite":71.63,"Churubusco":95.07,"San Jerónimo":82.35,"Azcapotzalco":69.55,"Del Valle":71.68,"Tec":89.42,"Jardines":88.22,"Lindavista":80.71,"Pedregal":73.94,"Cumbres":85.71,"La Calma":82.32,"Esmeralda":74.93,"Santa Teresita":83.33,"San Nicolás":72.3,"Santa Catarina":79.13,"Metepec":82.3,"Tabachines":69.89,"Ciudad Judicial":82.51,"Iztapalapa":95.34,"Carretera Nacional":81.23,"Lincoln":85.2,"Montejo":80.96,"Tlaquepaque":88.8,"Canek":79.41,"Saltillo Centro":82.79,"Monterrey Centro":78.18,"Jardines del Valle":81.84,"Volcanes":80.21,"Estadio":83.57,"Samara":79.08,"Manacar":72.73,"Centtral Interlomas":78.22},"PER":{"San Isidro":49.88,"La Molina":50.7,"La Alborada":38.03,"Surquillo":55.43,"Gonzales Prada":51.31}};
-(function(){function mnum(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(k in byc[c])byc[c][k]=src[c][k];}}}function mobj(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(byc[c][k]){var s=src[c][k];for(var f in s)byc[c][k][f]=s[f];}}}}mnum(ACC_BYC,typeof _ADM_ACC!=="undefined"?_ADM_ACC:null);mnum(ACCP_BYC,typeof _ADM_ACCP!=="undefined"?_ADM_ACCP:null);mobj(FCW_BYC,typeof _ADM_FCW!=="undefined"?_ADM_FCW:null);mobj(GAPB_BYC,typeof _ADM_GAPB!=="undefined"?_ADM_GAPB:null);mobj(GAPCMP_BYC,typeof _ADM_GAPCMP!=="undefined"?_ADM_GAPCMP:null);})();
+/* (sin overrides manuales) */
 /* === ADMIN-REFRESH END === */
 /* === APPS-REFRESH START · no editar a mano; lo regenera la tarea diaria de apps (Gestión Operativa + Capacitaciones) === */
 /* Gestión Operativa (kitchen-operations-hub): NO refrescado en esta corrida (la app redirigió a /login, sin sesión activa); se conservan los valores previos de GO_MODE. Capacitaciones (modulo-capacitaciones): General% por cocina, refrescado 2026-09-02 (filtros Q3/Mes:Todos/2026). */
@@ -889,7 +897,7 @@ builders.resumen=function(){
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+['COL','MEX','PER'].map(function(c){return '<button class="'+(c===selCountry?'active':'')+'" onclick="setCountry(\''+c+'\')">'+({COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'}[c])+'</button>';}).join('')+'</div>'+
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'+
         '<div style="display:flex;gap:6px">'+[['cerrada','📅 Semana cerrada'],['curso','⏳ Semana en curso']].map(function(o){return '<button class="'+(o[0]===weekMode?'active':'')+'" style="padding:6px 12px;font-size:11.5px" onclick="setWeekMode(\''+o[0]+'\')">'+o[1]+'</button>';}).join('')+'</div>'+
-        '<div style="font-size:9px;color:var(--muted);line-height:1.2">IF · Turbo · Cancel. — '+DAILY_WIN[weekMode]+'</div>'+
+        '<div style="font-size:9px;color:var(--muted);line-height:1.35">IF · Turbo · Cancel. — '+DAILY_WIN[weekMode]+'<br><span title="Cierre de semana por KPI — In Full: domingo a sábado · Turbo, Cancelaciones, Rotación y Gestión Operativa: lunes a domingo · Accuracy y GAP: martes a lunes. La data se espera el día siguiente al cierre; si aún no llega, la tarjeta muestra Pendiente de actualización." style="cursor:help;border-bottom:1px dotted var(--muted)">ⓘ convenciones de cierre de semana</span></div>'+
       '</div>'+
     '</div>'+
     tipoCard+(resMode==='prioridad'?groups2:groups);

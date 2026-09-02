@@ -112,6 +112,11 @@ function autoFactor(rows,idx){if(idx<0)return 1;var vals=[];rows.forEach(functio
 function factorFor(rows,idx){var m=scaleMode();if(m==='num')return 1;if(m==='frac')return 100;return autoFactor(rows,idx);}
 function pct(v,factor){var x=num(v);return x==null?null:Math.round(x*(factor||1)*100)/100;}
 function dateNum(s){s=String(s==null?'':s).trim();var m=s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(!m)return null;var d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;return y*10000+mo*100+d;}
+function pad2(n){return String(n).padStart(2,'0');}
+function serialToISO(n){var d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000);return d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate());}
+function isoClose(cw){var t=new Date();var y=new Date(t.getFullYear(),t.getMonth(),t.getDate()-1);var diff=(y.getDay()-cw+7)%7;y.setDate(y.getDate()-diff);return y.getFullYear()+'-'+pad2(y.getMonth()+1)+'-'+pad2(y.getDate());}
+/* cierre real desde el periodo: si es serial de Excel (>40000) lo convierte; si es número de semana usa el último cierre esperado (asume archivo al día) */
+function closeFromPeriod(sem,cw){return (sem!=null&&sem>40000)?serialToISO(sem):isoClose(cw);}
 
 var DATA={acc:null,gap:null,mtd:null};
 var COMPUTED=null;
@@ -205,6 +210,11 @@ function buildBlock(C){
   if(gapb)parts.push('var _ADM_GAPB='+JSON.stringify(gapb)+';');
   if(cmp)parts.push('var _ADM_GAPCMP='+JSON.stringify(cmp)+';');
   parts.push('(function(){function mnum(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(k in byc[c])byc[c][k]=src[c][k];}}}function mobj(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(byc[c][k]){var s=src[c][k];for(var f in s)byc[c][k][f]=s[f];}}}}mnum(ACC_BYC,typeof _ADM_ACC!=="undefined"?_ADM_ACC:null);mnum(ACCP_BYC,typeof _ADM_ACCP!=="undefined"?_ADM_ACCP:null);mobj(FCW_BYC,typeof _ADM_FCW!=="undefined"?_ADM_FCW:null);mobj(GAPB_BYC,typeof _ADM_GAPB!=="undefined"?_ADM_GAPB:null);mobj(GAPCMP_BYC,typeof _ADM_GAPCMP!=="undefined"?_ADM_GAPCMP:null);})();');
+  var closes=[];
+  if(acc)closes.push("KPI_CLOSE['Accuracy']='"+closeFromPeriod(C.acc.SEM,1)+"'");
+  if(fcw)closes.push("KPI_CLOSE['FoodCost']='"+closeFromPeriod(C.gap&&C.gap.SEM,1)+"'");
+  if(gapb)closes.push("KPI_CLOSE['GAP Bono']='"+closeFromPeriod(C.gap&&C.gap.SEM,1)+"'");
+  if(closes.length)parts.push("if(typeof KPI_CLOSE!=='undefined'){"+closes.join(';')+";}");
   return parts.join('\n');
 }
 function buildPreview(){
