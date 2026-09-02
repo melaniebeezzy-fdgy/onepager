@@ -159,14 +159,14 @@ function computeAcc(){
 }
 function computeGap(){
   var d=DATA.gap;if(!d)return null;var find=colFinder(d.headers);
-  var ki=find(['locacion','locación','cocina','kitchen','punto']);var wi=find(['week','semana']);
-  var fc=find(['foodcost','food cost']);var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
-  var aj=find(['ajustes']);var me=find(['mermas']);var ba=find(['bajas']);var fr=find(['frytol']);var re=find(['rend','rendimiento']);
+  var ki=find(['locacion','locación','cocina','kitchen','punto']);var wi=find(['week','semana']);var di=find(['fecha','date','scheduled_date']);var pcol=wi>=0?wi:(di>=0?di:-1);
+  var fc=find(['%_foodcost','% foodcost','%foodcost','foodcost','food cost']);var gb=find(['% gap bono','%_gap bono','%gapbono','gap bono','gapbono']);
+  var aj=find(['%_ajustes','% ajustes','%ajustes']);var me=find(['%_mermas','% mermas','%mermas']);var ba=find(['%_bajas','% bajas','%bajas']);var fr=find(['%_frytol','% frytol','%frytol']);var re=find(['% rend','%_rend','%rend','% rendimiento']);
   if(ki<0)return {err:'GAP Weekly: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
-  var ps=wi>=0?periodsDesc(d.rows,wi):[1];var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
+  var ps=periodsDesc(d.rows,pcol);var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
   var F=factorFor(d.rows,fc>=0?fc:gb);
   var fcw={COL:{},MEX:{},PER:{}},gapb={COL:{},MEX:{},PER:{}},cmp={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var w=wi>=0?periodVal(r[wi]):1;var pp=rk.c,k=rk.n;
+  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var w=pcol>=0?periodVal(r[pcol]):1;var pp=rk.c,k=rk.n;
     if(w===SEM){
       if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fc=pct(r[fc],F);}
       if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].b=pct(r[gb],F);}
@@ -181,13 +181,13 @@ function computeGap(){
 }
 function computeMtd(){
   var d=DATA.mtd;if(!d)return null;var find=colFinder(d.headers);
-  var ki=find(['locacion','locación','cocina','kitchen','punto']);var wi=find(['week','semana']);
-  var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
+  var ki=find(['locacion','locación','cocina','kitchen','punto']);var wi=find(['week','semana']);var di=find(['fecha','date','scheduled_date']);var pcol=wi>=0?wi:(di>=0?di:-1);
+  var gb=find(['% gap bono','%_gap bono','%gapbono','gap bono','gapbono']);var go=find(['% gap oper','%_gap oper','%gapoper','gap oper','gapoper','operativo']);
   if(ki<0)return {err:'GAP MTD: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
-  var SEM=wi>=0?periodsDesc(d.rows,wi)[0]:null;
+  var SEM=pcol>=0?periodsDesc(d.rows,pcol)[0]:null;
   var F=factorFor(d.rows,gb>=0?gb:go);
   var mtd={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){if(wi>=0&&periodVal(r[wi])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb],F);if(go>=0)mtd[pp][k].om=pct(r[go],F);});
+  d.rows.forEach(function(r){if(pcol>=0&&periodVal(r[pcol])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb],F);if(go>=0)mtd[pp][k].om=pct(r[go],F);});
   return {SEM:SEM,mtd:mtd};
 }
 function computeAll(){
