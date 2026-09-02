@@ -192,7 +192,7 @@ td.num,th.num{text-align:right}
 
 <!-- TOP BAR -->
 <div id="top">
-  <div class="ttl">One pager 360° <span id="crumb"></span></div>
+  <div class="ttl">One pager 360° <span id="crumb"></span> <a href="/admin" title="Actualización manual de KPIs" style="font-size:11px;color:#9aa7cc;text-decoration:none;font-weight:400;margin-left:10px">⚙ admin</a></div>
   <div class="spacer"></div>
   <select id="opsSel" class="scopesel" onchange="setOps(this.value)" title="Filtrar por Ops Manager"></select>
   <select id="scopeSel" class="scopesel" onchange="setScope(this.value)"></select>
@@ -810,6 +810,9 @@ var _ROTP={COL:{'Barranquilla':0,'Andes':400,'Arrecife':0,'Chico':171.4,'Parque 
 function mobj(byc,src){for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(byc[c][k]){var s=src[c][k];for(var f in s)byc[c][k][f]=s[f];}}}}
 mnum(ACC_BYC,_ACC);mnum(ACCP_BYC,_ACCP);mobj(FCW_BYC,_FCW);mobj(GAPB_BYC,_GAPB);mobj(GAPCMP_BYC,_GAPCMP);mobj(ROT_BYC,_ROT);mnum(ROTP_BYC,_ROTP);})();
 /* === WEEKLY-REFRESH END === */
+/* === ADMIN-REFRESH START · lo actualiza la vista /admin (Accuracy, GAP Weekly, GAP MTD). Overrides manuales; se aplican después de la tarea semanal y ganan sobre ella. === */
+/* (sin overrides manuales) */
+/* === ADMIN-REFRESH END === */
 /* === APPS-REFRESH START · no editar a mano; lo regenera la tarea diaria de apps (Gestión Operativa + Capacitaciones) === */
 /* Gestión Operativa (kitchen-operations-hub): NO refrescado en esta corrida (la app redirigió a /login, sin sesión activa); se conservan los valores previos de GO_MODE. Capacitaciones (modulo-capacitaciones): General% por cocina, refrescado 2026-09-02 (filtros Q3/Mes:Todos/2026). */
 var GO_MODE={cerrada:{COL:{'Cartagena':{rto:100,ldc:100,go:100},'Manila':{rto:100,ldc:100,go:100},'Bello':{rto:100,ldc:100,go:100},'Usaquén':{rto:100,ldc:100,go:100},'Parque 93':{rto:100,ldc:100,go:100},'Chapinero':{rto:100,ldc:93,go:97},'Colina':{rto:100,ldc:93,go:97},'Andes':{rto:100,ldc:100,go:100},'Chía':{rto:100,ldc:100,go:100},'Villa del Prado':{rto:100,ldc:100,go:100},'Arrecife':{rto:100,ldc:100,go:100},'Santa Monica':{rto:100,ldc:100,go:100},'San Fernando':{rto:100,ldc:93,go:97},'Barranquilla':{rto:100,ldc:100,go:100},'Engativá':{rto:100,ldc:100,go:100},'Cedritos':{rto:100,ldc:100,go:100},'Laureles':{rto:93,ldc:93,go:93},'Kennedy':{rto:93,ldc:93,go:93},'Veraguas':{rto:86,ldc:86,go:86},'Itagüí':{rto:43,ldc:43,go:43},'Ingenio':{rto:43,ldc:36,go:40},'Envigado':{rto:36,ldc:36,go:36}}},curso:{COL:{'Cartagena':{rto:100,ldc:88,go:94},'Manila':{rto:100,ldc:100,go:100},'Laureles':{rto:100,ldc:63,go:82},'Itagüí':{rto:100,ldc:100,go:100},'Usaquén':{rto:100,ldc:88,go:94},'Parque 93':{rto:100,ldc:75,go:88},'Chapinero':{rto:100,ldc:88,go:94},'Chía':{rto:100,ldc:88,go:94},'Villa del Prado':{rto:100,ldc:75,go:88},'Arrecife':{rto:100,ldc:88,go:94},'Engativá':{rto:100,ldc:88,go:94},'Cedritos':{rto:100,ldc:75,go:88},'Andes':{rto:88,ldc:88,go:88},'San Fernando':{rto:88,ldc:75,go:82},'Barranquilla':{rto:88,ldc:75,go:82},'Bello':{rto:75,ldc:75,go:75},'Colina':{rto:75,ldc:75,go:75},'Veraguas':{rto:75,ldc:88,go:82},'Kennedy':{rto:75,ldc:75,go:75},'Envigado':{rto:63,ldc:50,go:57},'Santa Monica':{rto:50,ldc:63,go:57},'Ingenio':{rto:50,ldc:50,go:50},'Chico':{rto:13,ldc:25,go:19},'Calle 109':{rto:13,ldc:13,go:13},'Plaza Claro Court':{rto:13,ldc:38,go:26}}}};

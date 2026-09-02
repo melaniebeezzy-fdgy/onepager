@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Pager 360° · Admin</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%230d2064%27/%3E%3Ctext%20x%3D%2730%27%20y%3D%2730%27%20font-family%3D%27Verdana%2CGeneva%2Csans-serif%27%20font-size%3D%2719%27%20font-weight%3D%27700%27%20fill%3D%27%23ffffff%27%20text-anchor%3D%27middle%27%3Efdgy%3C/text%3E%3Ccircle%20cx%3D%2754%27%20cy%3D%2730%27%20r%3D%272.4%27%20fill%3D%27%23ef8fb4%27/%3E%3Ctext%20x%3D%2732%27%20y%3D%2750%27%20font-family%3D%27Verdana%2CGeneva%2Csans-serif%27%20font-size%3D%2714%27%20font-weight%3D%27700%27%20fill%3D%27%23ef8fb4%27%20text-anchor%3D%27middle%27%3E360%C2%B0%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--navy:#0d2064;--pink:#ef8fb4;--muted:#6b7280;--line:#e5e7eb;--ok:#0a8f5b;--bad:#c0324c;--bg:#f4f6fa;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#111827}
+  header{background:var(--navy);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:12px}
+  header b{font-size:17px}
+  header a{color:#cdd6ee;font-size:12.5px;text-decoration:none;margin-left:auto}
+  .wrap{max-width:960px;margin:22px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:18px}
+  h2{font-size:15px;margin:0 0 4px}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+  .row{display:flex;flex-wrap:wrap;gap:14px}
+  .fileblk{flex:1;min-width:230px;border:1px dashed #c9d2e3;border-radius:10px;padding:12px;background:#fbfcfe}
+  .fileblk h3{font-size:13px;margin:0 0 6px;color:var(--navy)}
+  .fileblk small{color:var(--muted);font-size:11px;display:block;margin-bottom:8px;line-height:1.35}
+  input[type=file]{font-size:12px;width:100%}
+  .status{font-size:11.5px;margin-top:6px;min-height:15px}
+  .status.ok{color:var(--ok)}.status.err{color:var(--bad)}
+  label.opt{font-size:12px;color:#374151;display:inline-flex;align-items:center;gap:6px;margin-right:16px}
+  button{background:var(--navy);color:#fff;border:0;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.sec{background:#eef2f8;color:var(--navy)}
+  input[type=password]{padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:220px}
+  table{border-collapse:collapse;width:100%;font-size:11.5px;margin-top:8px}
+  th,td{border:1px solid var(--line);padding:4px 7px;text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  th{background:#f3f5f9;color:#374151;font-weight:600}
+  .pill{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:20px;background:#eef2f8;color:var(--navy);margin-left:6px}
+  .foot{font-size:11px;color:var(--muted);margin-top:6px}
+  #result{font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <b>One Pager 360° · Admin</b>
+  <span style="font-size:12px;color:#aab6d8">actualización manual de KPIs semanales</span>
+  <a href="/">← volver al dashboard</a>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>1 · Sube los archivos <span class="pill">.xlsx o .csv</span></h2>
+    <p class="sub">Sube el/los que quieras actualizar. Lo que no subas, no se toca. Se detectan las columnas por su encabezado; si algo no calza, se ve en el preview.</p>
+    <div class="row">
+      <div class="fileblk">
+        <h3>Accuracy</h3>
+        <small>Columnas esperadas: kitchen_id/cocina, % (promedio/accuracy), Week/Semana, País. Usa las 2 semanas más recientes (actual y previa).</small>
+        <input type="file" id="fAcc" accept=".xlsx,.xls,.csv">
+        <div class="status" id="sAcc"></div>
+      </div>
+      <div class="fileblk">
+        <h3>GAP Weekly</h3>
+        <small>Columnas: Locación/cocina, Week, País, %FoodCost, %GAP Bono, GAP Oper, %Ajustes, %Mermas, %Bajas, %Frytol, %Rend. Usa 2 semanas (actual/previa).</small>
+        <input type="file" id="fGap" accept=".xlsx,.xls,.csv">
+        <div class="status" id="sGap"></div>
+      </div>
+      <div class="fileblk">
+        <h3>GAP MTD</h3>
+        <small>Columnas: Locación/cocina, Week, %GAP Bono, GAP Oper. Usa la semana MTD más reciente.</small>
+        <input type="file" id="fMtd" accept=".xlsx,.xls,.csv">
+        <div class="status" id="sMtd"></div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label class="opt"><input type="radio" name="scale" value="num" checked> Los % vienen como número (29.85)</label>
+      <label class="opt"><input type="radio" name="scale" value="frac"> Como fracción (0.2985)</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Revisa el preview</h2>
+    <p class="sub">Verifica que las cocinas y valores se vean bien antes de publicar. Las cocinas que no existan en el dashboard se ignoran al aplicar.</p>
+    <button class="sec" id="btnPrev" onclick="buildPreview()">Generar preview</button>
+    <div id="preview"></div>
+  </div>
+
+  <div class="card">
+    <h2>3 · Publicar</h2>
+    <p class="sub">Ingresa la clave de admin y publica. Se hace commit al repo y Vercel redespliega en ~1 min.</p>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <input type="password" id="secret" placeholder="Clave de admin">
+      <button id="btnPub" onclick="publish()" disabled>Publicar cambios</button>
+    </div>
+    <div id="result"></div>
+    <p class="foot">La clave y el token de GitHub viven solo en el servidor (variables de entorno de Vercel); nunca se exponen aquí.</p>
+  </div>
+
+</div>
+
+<script>
+/* ---------- utilidades ---------- */
+function norm(s){return String(s||'').replace(/^[\s\d]+/,'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();}
+// kitchen_id / Locación -> nombre de cocina del dashboard
+var OVR={
+ "SANTAFE BOG":"SantaFe - Bogota","SANTAFE MED":"SantaFe - Medellin","PLAZA CLARO CINNA":"Plaza Claro Cinnabon",
+ "CABECERA":"Bucaramanga","CENTR INTERLOMAS":"Centtral Interlomas","JARDINES DEL VALL":"Jardines del Valle",
+ "CARRETERA NACIONA":"Carretera Nacional","BARRANQUILLA NTE":"Barranquilla","AVOCALIA CHICO":"Chico",
+ "CALLE 93 (CASTELLANA)":"Parque 93","CALLE180 (VILLA DEL PRADO)":"Villa del Prado","PLAZA CLARO AVOCALIA":"Plaza Claro Court",
+ "PUNTO 109 AVOCALIA":"Calle 109","SANTAFE":"SantaFe - Bogota","KENEDDY":"Kennedy","INTERLOMAS":"Centtral Interlomas",
+ "ZONA ESMERALDA":"Esmeralda","ESTADIO JALISCO":"Estadio","SANTA TERE":"Santa Teresita","MTY CENTRO":"Monterrey Centro",
+ "ZONA TEC":"Tec","CD JUDICIAL":"Ciudad Judicial","CENTR INTERLOMAS ":"Centtral Interlomas"
+};
+// nombres "canónicos" del dashboard tras normalizar (para mapear cuando no hay override)
+function mapKitchen(raw){var n=norm(raw);if(OVR[n])return OVR[n];return raw==null?'':String(raw).replace(/^[\s\d]+/,'').trim();}
+function mapPais(raw){var n=norm(raw);if(n.indexOf('COL')>-1)return 'COL';if(n.indexOf('MEX')>-1||n.indexOf('MÉX')>-1)return 'MEX';if(n.indexOf('PER')>-1)return 'PER';return null;}
+function scaleFactor(){return document.querySelector('input[name=scale]:checked').value==='frac'?100:1;}
+function num(v){if(v==null||v==='')return null;var x=parseFloat(String(v).replace('%','').replace(/,/g,'.'));return isNaN(x)?null:x;}
+function pct(v){var x=num(v);return x==null?null:Math.round(x*scaleFactor()*100)/100;}
+function r2(x){return x==null?null:Math.round(x*100)/100;}
+
+var DATA={acc:null,gap:null,mtd:null}; // parsed rows-of-arrays + headers
+var COMPUTED=null;
+
+function readFile(file,cb){
+  var fr=new FileReader();
+  fr.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      cb(null,rows);
+    }catch(err){cb(err);}
+  };
+  fr.onerror=function(){cb(new Error('no se pudo leer'));};
+  fr.readAsArrayBuffer(file);
+}
+// encuentra el índice de la fila de encabezados (primera fila con >=3 celdas de texto)
+function headerRow(rows){
+  for(var i=0;i<Math.min(rows.length,8);i++){
+    var txt=rows[i].filter(function(c){return typeof c==='string'&&c.trim().length>1&&isNaN(num(c));}).length;
+    if(txt>=3)return i;
+  }
+  return 0;
+}
+function colFinder(headers){
+  var H=headers.map(function(h){return norm(h);});
+  return function(keywords){
+    for(var k=0;k<keywords.length;k++){var kw=norm(keywords[k]);
+      for(var i=0;i<H.length;i++){if(H[i]===kw)return i;}
+    }
+    for(var k2=0;k2<keywords.length;k2++){var kw2=norm(keywords[k2]);
+      for(var i2=0;i2<H.length;i2++){if(H[i2].indexOf(kw2)>-1)return i2;}
+    }
+    return -1;
+  };
+}
+function bindFile(inputId,statusId,key){
+  document.getElementById(inputId).addEventListener('change',function(ev){
+    var f=ev.target.files[0];var st=document.getElementById(statusId);
+    if(!f){DATA[key]=null;st.textContent='';return;}
+    readFile(f,function(err,rows){
+      if(err){DATA[key]=null;st.className='status err';st.textContent='Error: '+err.message;return;}
+      var hr=headerRow(rows);
+      DATA[key]={headers:rows[hr],rows:rows.slice(hr+1)};
+      st.className='status ok';st.textContent='✓ '+f.name+' — '+(rows.length-hr-1)+' filas';
+    });
+  });
+}
+bindFile('fAcc','sAcc','acc');bindFile('fGap','sGap','gap');bindFile('fMtd','sMtd','mtd');
+
+/* ---------- cómputo por KPI ---------- */
+function twoLatestWeeks(rows,wi){
+  var ws={};rows.forEach(function(r){var w=num(r[wi]);if(w!=null)ws[w]=(ws[w]||0)+1;});
+  var keys=Object.keys(ws).map(Number).sort(function(a,b){return b-a;});
+  return keys; // desc
+}
+function computeAcc(){
+  var d=DATA.acc;if(!d)return null;
+  var find=colFinder(d.headers);
+  var ki=find(['kitchen_id','kitchen','cocina','punto','locacion','locación']);
+  var vi=find(['promedio','accuracy','% accuracy','porcentaje','valor']);
+  var wi=find(['week','semana']);
+  var pi=find(['pais','país','country']);
+  if(ki<0||vi<0||wi<0){return {err:'Accuracy: faltan columnas (cocina/valor/semana). Detectadas: '+d.headers.join(', ')};}
+  var weeks=twoLatestWeeks(d.rows,wi);var SEM=weeks[0],PREV=weeks[1];
+  var acc={COL:{},MEX:{},PER:{}},accp={COL:{},MEX:{},PER:{}};
+  d.rows.forEach(function(r){
+    var w=num(r[wi]);var pais=pi>=0?mapPais(r[pi]):null;var k=mapKitchen(r[ki]);var v=pct(r[vi]);
+    if(!k||v==null)return;
+    // si no hay país, intenta las tres (se filtra luego por existencia en dashboard)
+    var buckets=pais?[pais]:['COL','MEX','PER'];
+    buckets.forEach(function(P){if(w===SEM)acc[P][k]=v;else if(w===PREV)accp[P][k]=v;});
+  });
+  return {SEM:SEM,PREV:PREV,acc:acc,accp:accp};
+}
+function computeGap(){
+  var d=DATA.gap;if(!d)return null;
+  var find=colFinder(d.headers);
+  var ki=find(['locacion','locación','cocina','kitchen','punto']);
+  var wi=find(['week','semana']);
+  var pi=find(['pais','país','country']);
+  var fc=find(['foodcost','food cost','%foodcost','% food cost']);
+  var gb=find(['gap bono','%gapbono','gapbono','bono']);
+  var go=find(['gap oper','gapoper','operativo','gap operativo']);
+  var aj=find(['ajustes','%ajustes']);var me=find(['mermas','%mermas']);
+  var ba=find(['bajas','%bajas']);var fr=find(['frytol','%frytol']);var re=find(['rend','rendimiento','%rend']);
+  if(ki<0||wi<0){return {err:'GAP Weekly: faltan columnas (cocina/semana). Detectadas: '+d.headers.join(', ')};}
+  var weeks=twoLatestWeeks(d.rows,wi);var SEM=weeks[0],PREV=weeks[1];
+  var fcw={COL:{},MEX:{},PER:{}},gapb={COL:{},MEX:{},PER:{}},cmp={COL:{},MEX:{},PER:{}};
+  d.rows.forEach(function(r){
+    var w=num(r[wi]);var P=pi>=0?mapPais(r[pi]):null;var k=mapKitchen(r[ki]);if(!k)return;
+    var Ps=P?[P]:['COL','MEX','PER'];
+    Ps.forEach(function(pp){
+      if(w===SEM){
+        if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fc=pct(r[fc]);}
+        if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].b=pct(r[gb]);}
+        var o={};if(ba>=0)o.ba=pct(r[ba]);if(me>=0)o.me=pct(r[me]);if(fr>=0)o.fr=pct(r[fr]);if(aj>=0)o.aj=pct(r[aj]);if(re>=0)o.re=pct(r[re]);
+        if(Object.keys(o).length)cmp[pp][k]=o;
+      }else if(w===PREV){
+        if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fp=pct(r[fc]);}
+        if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].bp=pct(r[gb]);}
+      }
+    });
+  });
+  return {SEM:SEM,PREV:PREV,fcw:fcw,gapb:gapb,cmp:cmp};
+}
+function computeMtd(){
+  var d=DATA.mtd;if(!d)return null;
+  var find=colFinder(d.headers);
+  var ki=find(['locacion','locación','cocina','kitchen','punto']);
+  var wi=find(['week','semana']);
+  var pi=find(['pais','país','country']);
+  var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
+  if(ki<0){return {err:'GAP MTD: falta columna de cocina. Detectadas: '+d.headers.join(', ')};}
+  var SEM=null;if(wi>=0){SEM=twoLatestWeeks(d.rows,wi)[0];}
+  var mtd={COL:{},MEX:{},PER:{}};
+  d.rows.forEach(function(r){
+    if(wi>=0&&num(r[wi])!==SEM)return;
+    var P=pi>=0?mapPais(r[pi]):null;var k=mapKitchen(r[ki]);if(!k)return;
+    var Ps=P?[P]:['COL','MEX','PER'];
+    Ps.forEach(function(pp){mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb]);if(go>=0)mtd[pp][k].om=pct(r[go]);});
+  });
+  return {SEM:SEM,mtd:mtd};
+}
+
+function computeAll(){
+  var a=computeAcc(),g=computeGap(),m=computeMtd();
+  for(var x of [a,g,m]){if(x&&x.err)return {err:x.err};}
+  // merge MTD (bm,om) into gapb
+  if(g&&m){['COL','MEX','PER'].forEach(function(P){for(var k in m.mtd[P]){g.gapb[P][k]=g.gapb[P][k]||{};if(m.mtd[P][k].bm!=null)g.gapb[P][k].bm=m.mtd[P][k].bm;if(m.mtd[P][k].om!=null)g.gapb[P][k].om=m.mtd[P][k].om;}});}
+  else if(!g&&m){var gapb={COL:{},MEX:{},PER:{}};['COL','MEX','PER'].forEach(function(P){for(var k in m.mtd[P]){gapb[P][k]=m.mtd[P][k];}});g={gapb:gapb,SEM:null,PREV:null,fcw:null,cmp:null};}
+  return {acc:a,gap:g};
+}
+
+/* ---------- preview + bloque ---------- */
+function cleanObj(o){var r={};for(var P in o){var inner={};for(var k in o[P]){if(o[P][k]!=null&&(typeof o[P][k]!=='object'||Object.keys(o[P][k]).length))inner[k]=o[P][k];}if(Object.keys(inner).length)r[P]=inner;}return Object.keys(r).length?r:null;}
+
+function buildBlock(C){
+  var parts=[];
+  var comment='/* admin '+new Date().toISOString().slice(0,10);
+  if(C.acc)comment+=' · Accuracy sem '+C.acc.SEM;
+  if(C.gap&&C.gap.SEM!=null)comment+=' · GAP sem '+C.gap.SEM;
+  comment+=' */';
+  parts.push(comment);
+  var acc=C.acc?cleanObj(C.acc.acc):null, accp=C.acc?cleanObj(C.acc.accp):null;
+  var fcw=C.gap&&C.gap.fcw?cleanObj(C.gap.fcw):null;
+  var gapb=C.gap&&C.gap.gapb?cleanObj(C.gap.gapb):null;
+  var cmp=C.gap&&C.gap.cmp?cleanObj(C.gap.cmp):null;
+  if(acc)parts.push('var _ADM_ACC='+JSON.stringify(acc)+';');
+  if(accp)parts.push('var _ADM_ACCP='+JSON.stringify(accp)+';');
+  if(fcw)parts.push('var _ADM_FCW='+JSON.stringify(fcw)+';');
+  if(gapb)parts.push('var _ADM_GAPB='+JSON.stringify(gapb)+';');
+  if(cmp)parts.push('var _ADM_GAPCMP='+JSON.stringify(cmp)+';');
+  parts.push('(function(){function mnum(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(k in byc[c])byc[c][k]=src[c][k];}}}function mobj(byc,src){if(!src)return;for(var c in src){if(!byc[c])continue;for(var k in src[c]){if(byc[c][k]){var s=src[c][k];for(var f in s)byc[c][k][f]=s[f];}}}}'+
+    'mnum(ACC_BYC,typeof _ADM_ACC!=="undefined"?_ADM_ACC:null);mnum(ACCP_BYC,typeof _ADM_ACCP!=="undefined"?_ADM_ACCP:null);mobj(FCW_BYC,typeof _ADM_FCW!=="undefined"?_ADM_FCW:null);mobj(GAPB_BYC,typeof _ADM_GAPB!=="undefined"?_ADM_GAPB:null);mobj(GAPCMP_BYC,typeof _ADM_GAPCMP!=="undefined"?_ADM_GAPCMP:null);})();');
+  return parts.join('\n');
+}
+
+function buildPreview(){
+  var C=computeAll();var box=document.getElementById('preview');
+  if(!DATA.acc&&!DATA.gap&&!DATA.mtd){box.innerHTML='<p class="foot">Sube al menos un archivo.</p>';return;}
+  if(C.err){box.innerHTML='<p class="status err">'+C.err+'</p>';document.getElementById('btnPub').disabled=true;return;}
+  COMPUTED=C;
+  // arma tabla combinada por país/cocina
+  var html='';
+  ['COL','MEX','PER'].forEach(function(P){
+    var names={};
+    function collect(o){if(o)for(var k in o[P]||{})names[k]=1;}
+    if(C.acc){collect(C.acc.acc);collect(C.acc.accp);}
+    if(C.gap){collect(C.gap.fcw);collect(C.gap.gapb);collect(C.gap.cmp);}
+    var keys=Object.keys(names).sort();if(!keys.length)return;
+    html+='<h3 style="font-size:13px;margin:12px 0 4px;color:#0d2064">'+P+' <span class="pill">'+keys.length+' cocinas</span></h3>';
+    html+='<div style="overflow:auto"><table><tr><th>Cocina</th><th>Acc</th><th>Acc prev</th><th>FoodCost</th><th>GAP Bono</th><th>GAP prev</th><th>Bono MTD</th><th>Oper MTD</th></tr>';
+    keys.forEach(function(k){
+      function g(o,f){if(!o||!o[P]||!o[P][k])return '';var v=f?o[P][k][f]:o[P][k];return v==null?'':v;}
+      var gb=C.gap?C.gap.gapb:null;
+      html+='<tr><td>'+k+'</td>'+
+        '<td>'+g(C.acc&&C.acc.acc)+'</td><td>'+g(C.acc&&C.acc.accp)+'</td>'+
+        '<td>'+g(C.gap&&C.gap.fcw,'fc')+'</td>'+
+        '<td>'+g(gb,'b')+'</td><td>'+g(gb,'bp')+'</td>'+
+        '<td>'+g(gb,'bm')+'</td><td>'+g(gb,'om')+'</td></tr>';
+    });
+    html+='</table></div>';
+  });
+  html+='<p class="foot">Si los números se ven raros (ej. ×100), cambia el formato de % arriba y regenera.</p>';
+  box.innerHTML=html||'<p class="foot">No se detectaron cocinas. Revisa las columnas.</p>';
+  document.getElementById('btnPub').disabled=!html;
+}
+
+async function publish(){
+  var res=document.getElementById('result');
+  if(!COMPUTED){res.innerHTML='<span class="status err">Genera el preview primero.</span>';return;}
+  var secret=document.getElementById('secret').value.trim();
+  if(!secret){res.innerHTML='<span class="status err">Ingresa la clave de admin.</span>';return;}
+  var block=buildBlock(COMPUTED);
+  res.innerHTML='Publicando…';document.getElementById('btnPub').disabled=true;
+  try{
+    var r=await fetch('/api/update-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({secret:secret,block:block})});
+    var j=await r.json();
+    if(j.ok){res.innerHTML='<span class="status ok">✓ Publicado'+(j.changed===false?' (sin cambios)':'')+'. Vercel redesplegará en ~1 min. Recarga el dashboard con Cmd+Shift+R.</span>';}
+    else{res.innerHTML='<span class="status err">Error: '+(j.error||'')+(j.detail?' — '+j.detail:'')+'</span>';document.getElementById('btnPub').disabled=false;}
+  }catch(e){res.innerHTML='<span class="status err">Error de red: '+e.message+'</span>';document.getElementById('btnPub').disabled=false;}
+}
+</script>
+</body>
+</html>
