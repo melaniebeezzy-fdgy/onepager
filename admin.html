@@ -71,8 +71,9 @@
       </div>
     </div>
     <div style="margin-top:12px">
-      <label class="opt"><input type="radio" name="scale" value="num" checked> Los % vienen como número (89.35)</label>
-      <label class="opt"><input type="radio" name="scale" value="frac"> Como fracción (0.8935)</label>
+      <label class="opt"><input type="radio" name="scale" value="auto" checked> Escala automática (recomendado)</label>
+      <label class="opt"><input type="radio" name="scale" value="num"> Forzar número (89.35)</label>
+      <label class="opt"><input type="radio" name="scale" value="frac"> Forzar fracción (0.2985)</label>
     </div>
   </div>
 
@@ -105,9 +106,11 @@ var OVR={"SANTAFE BOG":"SantaFe - Bogota","SANTAFE MED":"SantaFe - Medellin","PL
 function norm(s){return String(s==null?'':s).replace(/^[\s\d]+/,'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();}
 var IDX={};(function(){for(var c in NAMES){NAMES[c].forEach(function(n){IDX[norm(n)]={c:c,n:n};});}})();
 function resolveKitchen(raw){var n=norm(raw);if(!n)return null;if(OVR[n])return IDX[norm(OVR[n])]||null;return IDX[n]||null;}
-function scaleFactor(){return document.querySelector('input[name=scale]:checked').value==='frac'?100:1;}
+function scaleMode(){var el=document.querySelector('input[name=scale]:checked');return el?el.value:'auto';}
 function num(v){if(v==null||v==='')return null;var x=parseFloat(String(v).replace('%','').replace(/,/g,'.').trim());return isNaN(x)?null:x;}
-function pct(v){var x=num(v);return x==null?null:Math.round(x*scaleFactor()*100)/100;}
+function autoFactor(rows,idx){if(idx<0)return 1;var vals=[];rows.forEach(function(r){var x=num(r[idx]);if(x!=null&&x!==0)vals.push(Math.abs(x));});if(!vals.length)return 1;vals.sort(function(a,b){return a-b;});return vals[Math.floor(vals.length/2)]<=1.5?100:1;}
+function factorFor(rows,idx){var m=scaleMode();if(m==='num')return 1;if(m==='frac')return 100;return autoFactor(rows,idx);}
+function pct(v,factor){var x=num(v);return x==null?null:Math.round(x*(factor||1)*100)/100;}
 function dateNum(s){s=String(s==null?'':s).trim();var m=s.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(!m)return null;var d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;return y*10000+mo*100+d;}
 
 var DATA={acc:null,gap:null,mtd:null};
@@ -145,8 +148,9 @@ function computeAcc(){
   var wi=find(['week','semana']);var di=find(['scheduled_date','fecha','date','scheduled']);
   if(ki<0||vi<0)return {err:'Accuracy: no encontré columna de cocina y/o valor. Encabezados: '+d.headers.join(' | ')};
   var ps=periodsDesc(d.rows,wi,di);var SEM=ps.length?ps[0]:1,PREV=ps.length>1?ps[1]:null;
+  var F=factorFor(d.rows,vi);
   var acc={COL:{},MEX:{},PER:{}},accp={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var v=pct(r[vi]);if(v==null)return;var p=wi>=0?num(r[wi]):(di>=0?dateNum(r[di]):1);if(p===SEM)acc[rk.c][rk.n]=v;else if(PREV!=null&&p===PREV)accp[rk.c][rk.n]=v;});
+  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var v=pct(r[vi],F);if(v==null)return;var p=wi>=0?num(r[wi]):(di>=0?dateNum(r[di]):1);if(p===SEM)acc[rk.c][rk.n]=v;else if(PREV!=null&&p===PREV)accp[rk.c][rk.n]=v;});
   return {SEM:SEM,PREV:PREV,acc:acc,accp:(PREV!=null?accp:null)};
 }
 function computeGap(){
@@ -156,16 +160,17 @@ function computeGap(){
   var aj=find(['ajustes']);var me=find(['mermas']);var ba=find(['bajas']);var fr=find(['frytol']);var re=find(['rend','rendimiento']);
   if(ki<0)return {err:'GAP Weekly: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
   var ps=wi>=0?periodsDesc(d.rows,wi,-1):[1];var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
+  var F=factorFor(d.rows,fc>=0?fc:gb);
   var fcw={COL:{},MEX:{},PER:{}},gapb={COL:{},MEX:{},PER:{}},cmp={COL:{},MEX:{},PER:{}};
   d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var w=wi>=0?num(r[wi]):1;var pp=rk.c,k=rk.n;
     if(w===SEM){
-      if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fc=pct(r[fc]);}
-      if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].b=pct(r[gb]);}
-      var o={};if(ba>=0)o.ba=pct(r[ba]);if(me>=0)o.me=pct(r[me]);if(fr>=0)o.fr=pct(r[fr]);if(aj>=0)o.aj=pct(r[aj]);if(re>=0)o.re=pct(r[re]);
+      if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fc=pct(r[fc],F);}
+      if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].b=pct(r[gb],F);}
+      var o={};if(ba>=0)o.ba=pct(r[ba],F);if(me>=0)o.me=pct(r[me],F);if(fr>=0)o.fr=pct(r[fr],F);if(aj>=0)o.aj=pct(r[aj],F);if(re>=0)o.re=pct(r[re],F);
       if(Object.keys(o).length)cmp[pp][k]=o;
     }else if(PREV!=null&&w===PREV){
-      if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fp=pct(r[fc]);}
-      if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].bp=pct(r[gb]);}
+      if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fp=pct(r[fc],F);}
+      if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].bp=pct(r[gb],F);}
     }
   });
   return {SEM:SEM,PREV:PREV,fcw:fcw,gapb:gapb,cmp:cmp};
@@ -176,8 +181,9 @@ function computeMtd(){
   var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
   if(ki<0)return {err:'GAP MTD: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
   var SEM=wi>=0?periodsDesc(d.rows,wi,-1)[0]:null;
+  var F=factorFor(d.rows,gb>=0?gb:go);
   var mtd={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){if(wi>=0&&num(r[wi])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb]);if(go>=0)mtd[pp][k].om=pct(r[go]);});
+  d.rows.forEach(function(r){if(wi>=0&&num(r[wi])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb],F);if(go>=0)mtd[pp][k].om=pct(r[go],F);});
   return {SEM:SEM,mtd:mtd};
 }
 function computeAll(){
