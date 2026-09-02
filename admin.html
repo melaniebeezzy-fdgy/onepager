@@ -137,20 +137,19 @@ function bindFile(inputId,statusId,key){
 }
 bindFile('fAcc','sAcc','acc');bindFile('fGap','sGap','gap');bindFile('fMtd','sMtd','mtd');
 
-function periodsDesc(rows,wi,di){
-  var set={};rows.forEach(function(r){var p=wi>=0?num(r[wi]):(di>=0?dateNum(r[di]):1);if(p!=null)set[p]=1;});
-  return Object.keys(set).map(Number).sort(function(a,b){return b-a;});
-}
+function periodVal(v){if(v==null||v==='')return null;if(typeof v==='number')return v;if(v instanceof Date)return v.getTime();var s=String(v);var dn=dateNum(s);if(dn!=null)return dn;return num(s);}
+function periodsDesc(rows,pcol){if(pcol<0)return [1];var set={};rows.forEach(function(r){var p=periodVal(r[pcol]);if(p!=null)set[p]=1;});var ks=Object.keys(set).map(Number).sort(function(a,b){return b-a;});return ks.length?ks:[1];}
 function computeAcc(){
   var d=DATA.acc;if(!d)return null;var find=colFinder(d.headers);
   var ki=find(['kitchen_id','kitchen','cocina','punto','locacion','locación']);
   var vi=find(['promedio de indicador','promedio','indicador','accuracy','porcentaje','valor']);
   var wi=find(['week','semana']);var di=find(['scheduled_date','fecha','date','scheduled']);
   if(ki<0||vi<0)return {err:'Accuracy: no encontré columna de cocina y/o valor. Encabezados: '+d.headers.join(' | ')};
-  var ps=periodsDesc(d.rows,wi,di);var SEM=ps.length?ps[0]:1,PREV=ps.length>1?ps[1]:null;
+  var pcol=wi>=0?wi:(di>=0?di:-1);
+  var ps=periodsDesc(d.rows,pcol);var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
   var F=factorFor(d.rows,vi);
   var acc={COL:{},MEX:{},PER:{}},accp={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var v=pct(r[vi],F);if(v==null)return;var p=wi>=0?num(r[wi]):(di>=0?dateNum(r[di]):1);if(p===SEM)acc[rk.c][rk.n]=v;else if(PREV!=null&&p===PREV)accp[rk.c][rk.n]=v;});
+  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var v=pct(r[vi],F);if(v==null)return;var p=pcol>=0?periodVal(r[pcol]):1;if(p===SEM)acc[rk.c][rk.n]=v;else if(PREV!=null&&p===PREV)accp[rk.c][rk.n]=v;});
   return {SEM:SEM,PREV:PREV,acc:acc,accp:(PREV!=null?accp:null)};
 }
 function computeGap(){
@@ -159,10 +158,10 @@ function computeGap(){
   var fc=find(['foodcost','food cost']);var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
   var aj=find(['ajustes']);var me=find(['mermas']);var ba=find(['bajas']);var fr=find(['frytol']);var re=find(['rend','rendimiento']);
   if(ki<0)return {err:'GAP Weekly: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
-  var ps=wi>=0?periodsDesc(d.rows,wi,-1):[1];var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
+  var ps=wi>=0?periodsDesc(d.rows,wi):[1];var SEM=ps[0],PREV=ps.length>1?ps[1]:null;
   var F=factorFor(d.rows,fc>=0?fc:gb);
   var fcw={COL:{},MEX:{},PER:{}},gapb={COL:{},MEX:{},PER:{}},cmp={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var w=wi>=0?num(r[wi]):1;var pp=rk.c,k=rk.n;
+  d.rows.forEach(function(r){var rk=resolveKitchen(r[ki]);if(!rk)return;var w=wi>=0?periodVal(r[wi]):1;var pp=rk.c,k=rk.n;
     if(w===SEM){
       if(fc>=0){fcw[pp][k]=fcw[pp][k]||{};fcw[pp][k].fc=pct(r[fc],F);}
       if(gb>=0){gapb[pp][k]=gapb[pp][k]||{};gapb[pp][k].b=pct(r[gb],F);}
@@ -180,10 +179,10 @@ function computeMtd(){
   var ki=find(['locacion','locación','cocina','kitchen','punto']);var wi=find(['week','semana']);
   var gb=find(['gap bono','gapbono','bono']);var go=find(['gap oper','gapoper','operativo']);
   if(ki<0)return {err:'GAP MTD: no encontré columna de cocina. Encabezados: '+d.headers.join(' | ')};
-  var SEM=wi>=0?periodsDesc(d.rows,wi,-1)[0]:null;
+  var SEM=wi>=0?periodsDesc(d.rows,wi)[0]:null;
   var F=factorFor(d.rows,gb>=0?gb:go);
   var mtd={COL:{},MEX:{},PER:{}};
-  d.rows.forEach(function(r){if(wi>=0&&num(r[wi])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb],F);if(go>=0)mtd[pp][k].om=pct(r[go],F);});
+  d.rows.forEach(function(r){if(wi>=0&&periodVal(r[wi])!==SEM)return;var rk=resolveKitchen(r[ki]);if(!rk)return;var pp=rk.c,k=rk.n;mtd[pp][k]=mtd[pp][k]||{};if(gb>=0)mtd[pp][k].bm=pct(r[gb],F);if(go>=0)mtd[pp][k].om=pct(r[go],F);});
   return {SEM:SEM,mtd:mtd};
 }
 function computeAll(){
