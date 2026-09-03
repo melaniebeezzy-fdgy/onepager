@@ -875,8 +875,9 @@ builders.resumen=function(){
   var _bs=basicsCardObj();
   var cBas={st:_bs.st,h:sumCard('bas','📋','Basics',_bs.value,'Básicos operativos · Meta > '+(BASICS_THR[selCountry]||95)+'% · Q3',_bs.st,_bs.badge,_bs.dl,_bs.extra)};
   function grp(title,arr,pinned){arr=arr.slice().sort(function(a,b){return RK[a.st]-RK[b.st];});var hs=(pinned?[pinned]:[]).concat(arr.map(function(x){return x.h;}));var cols=hs.length>=4?4:3;return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">'+title+'</h1></div></div><div class="grid g'+cols+'">'+hs.join('')+'</div>';}
-  var groups=grp('Pedidos',[cIF].concat(hasTurbo?[cTurbo]:[]).concat([cCancel]))+grp('Control de inventarios',[cFood,cGapop,cAcc])+grp('Salud de la cocina',[cGO,cRot,cCap,cBas]);
-  function m2(sec,ic,name,value,detail,st,badge,dl,extra){return {st:st,h:sumCard(sec,ic,name,value,detail,st,badge,dl,extra)};}
+  var isCurso=(typeof weekMode!=='undefined'&&weekMode==='curso');
+  var groups=grp('Pedidos',[cIF].concat(hasTurbo?[cTurbo]:[]).concat([cCancel]))+(isCurso?'':grp('Control de inventarios',[cFood,cGapop,cAcc]))+grp('Salud de la cocina',isCurso?[cGO,cCap]:[cGO,cRot,cCap,cBas]);
+  function m2(sec,ic,name,value,detail,st,badge,dl,extra){return {st:st,name:name,h:sumCard(sec,ic,name,value,detail,st,badge,dl,extra)};}
   var v2=[
     m2('turbo','⚡','Turbo (RTWT)',_tb.value,'RTWT dom–sáb · Meta ≤ 2 min',_tb.st,_tb.badge,_tb.dl,_tb.extra),
     m2('gap','📉','GAP Bono',_gp.value,gapSub,_gp.st,_gp.badge,_gp.dl,_gp.extra),
@@ -890,6 +891,7 @@ builders.resumen=function(){
     m2('rot','🔄','Rotación',_rot.value,rotSub,_rot.st,_rot.badge,_rot.dl,_rot.extra)
   ];
   if(!hasTurbo)v2=v2.filter(function(x){return x.h.indexOf('Turbo (RTWT)')<0;});
+  if(isCurso){var _keepC={'In Full':1,'Turbo (RTWT)':1,'Cancelaciones':1,'Gestión Operativa':1,'Capacitaciones':1};v2=v2.filter(function(x){return _keepC[x.name];});}
   var prioriza=v2.filter(function(x){return x.st==='r'||x.st==='p';});
   var monitorea=v2.filter(function(x){return x.st==='a'||x.st==='n';});
   var vasbien=v2.filter(function(x){return x.st==='g';});
