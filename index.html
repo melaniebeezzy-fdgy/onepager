@@ -859,7 +859,8 @@ builders.resumen=function(){
   var cCancel={st:_cn.st,h:sumCard('can','🚫','Cancelaciones',_cn.value,'Órdenes canceladas · semana dom–sáb',_cn.st,_cn.badge,_cn.dl,_cn.extra)};
   var _gp=gapBonoCardObj();
   var _gtip=gapTipo(); var _gth=_gtip?(GAP_TH[selCountry]||{})[_gtip]:null;
-  var gapSub=_gth?('Tipo '+_gtip+' · Agresivo 1,2–'+f1(_gth.g)+'% · Moderado '+f1(_gth.g)+'–'+f1(_gth.a)+'% · Sin bono >'+f1(_gth.a)+'%'):'Distancia al bono';
+  var _glo=(_gtip==='PF')?'0':'1,2';
+  var gapSub=_gth?('Tipo '+_gtip+' · Agresivo '+_glo+'–'+f1(_gth.g)+'% · Moderado '+f1(_gth.g)+'–'+f1(_gth.a)+'% · Sin bono >'+f1(_gth.a)+'%'):'Distancia al bono';
   var cGapop={st:_gp.st,h:sumCard('gap','📉','GAP Bono',_gp.value,gapSub,_gp.st,_gp.badge,_gp.dl,_gp.extra)};
   var _fc=fcCardObj();
   var cFood={st:_fc.st,h:sumCard('gap','🧾','FoodCost',_fc.value,'Meta ≤ '+f1(FC_TARGET[selCountry])+'% · semanal',_fc.st,_fc.badge,_fc.dl,_fc.extra)};
