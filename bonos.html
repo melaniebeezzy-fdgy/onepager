@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foodology | Bono WOW México</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d2064'/%3E%3Ctext x='8' y='38' font-family='Arial' font-weight='700' font-size='20' fill='%23fff'%3Efdgy%3C/text%3E%3Ccircle cx='54' cy='30' r='4' fill='%23e0559b'/%3E%3Ctext x='8' y='54' font-family='Arial' font-weight='700' font-size='13' fill='%23e0559b'%3E360%C2%B0%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0E2841;--navy2:#242F42;--teal:#0B769F;--cyan:#0F9ED5;--pink:#C19EB1;
+  --green:#2f9e5f;--amber:#e2a52a;--red:#d64545;--ink:#242F42;--muted:#6b7686;
+  --line:#e7ebf1;--bg:#f4f6fa;--card:#fff;--shadow:0 1px 3px rgba(9,14,62,.06),0 8px 24px rgba(9,14,62,.05);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+a{color:var(--teal)}
+header{background:linear-gradient(120deg,#0E2841,#153D64);color:#fff;padding:22px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header .brand{font-weight:800;font-size:20px;letter-spacing:.3px}
+header .brand b{color:#e0559b}
+header .sub{color:#c7d3e0;font-size:12.5px}
+header .spacer{flex:1}
+header a.back{color:#c7d3e0;font-size:12.5px;text-decoration:none;border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:8px}
+header a.back:hover{background:rgba(255,255,255,.08)}
+.wrap{max-width:1280px;margin:0 auto;padding:22px}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.drop{flex:1;min-width:280px;border:2px dashed #cdd6e3;border-radius:14px;background:#fff;padding:18px 20px;text-align:center;cursor:pointer;transition:.15s}
+.drop:hover,.drop.hot{border-color:var(--cyan);background:#f7fbff}
+.drop b{color:var(--navy)}
+.drop small{display:block;color:var(--muted);margin-top:4px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-family:inherit;font-weight:600;cursor:pointer;font-size:13px}
+.btn.p{background:var(--navy);color:#fff}
+.btn.g{background:var(--green);color:#fff}
+.btn.o{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.kpi .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:22px;font-weight:700;color:var(--navy);margin-top:3px}
+.kpi .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+.panel{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+.panel h3{margin:0;padding:14px 18px;font-size:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.panel h3 .pill{font-size:11px;font-weight:600;background:#eef3f8;color:var(--teal);padding:2px 9px;border-radius:20px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);align-items:center}
+.tools input,.tools select{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.tblwrap{overflow:auto;max-height:70vh}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid #f0f3f7}
+th{position:sticky;top:0;background:#f7f9fc;color:var(--navy);font-weight:600;cursor:pointer;z-index:1}
+th.r,td.r{text-align:right}
+tbody tr:hover{background:#f7fbff}
+td.money{font-variant-numeric:tabular-nums}
+.tag{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px}
+.t-agr{background:#e5f5ec;color:#1c7a45}
+.t-mod{background:#fdf3df;color:#9a6a11}
+.t-sin{background:#fbe6e6;color:#b23333}
+.t-pf{background:#eef0ff;color:#4a4fb0}
+.muted{color:var(--muted)}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);padding:0 18px 14px}
+.err{background:#fbe6e6;color:#b23333;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;display:none}
+.foot{color:var(--muted);font-size:11.5px;text-align:center;padding:14px}
+.spec{font-size:11px;color:var(--amber)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>fdgy</b> · Bono WOW México</div>
+  <div class="sub" id="hsub">Cargá el archivo mensual de bonos para calcular</div>
+  <div class="spacer"></div>
+  <a class="back" href="/">← One Pager 360°</a>
+</header>
+
+<div class="wrap">
+  <div class="err" id="err"></div>
+
+  <div class="bar">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".xlsx,.xlsm,.xls" style="display:none">
+      <b>📄 Subí el workbook de bonos</b>
+      <small>«CP's MEX &lt;mes&gt;.xlsx» — se lee y calcula en tu navegador, no se sube a ningún lado</small>
+    </label>
+    <button class="btn o" id="btnCsvK" disabled>Exportar cocinas CSV</button>
+    <button class="btn o" id="btnCsvP" disabled>Exportar personas CSV</button>
+  </div>
+
+  <div class="cards" id="cards" style="display:none"></div>
+
+  <div class="panel" id="cityPanel" style="display:none">
+    <h3>Resumen por ciudad <span class="pill" id="cityMonth"></span></h3>
+    <div class="tblwrap"><table id="cityTbl"></table></div>
+  </div>
+
+  <div class="panel" id="kPanel" style="display:none">
+    <h3>Bono por cocina <span class="pill">pool GAP + IF + Rappi</span></h3>
+    <div class="tools">
+      <input type="search" id="kSearch" placeholder="Buscar cocina…">
+      <select id="kCity"><option value="">Todas las ciudades</option></select>
+      <select id="kType"><option value="">Todos los tipos</option></select>
+      <span class="muted" id="kCount"></span>
+    </div>
+    <div class="tblwrap"><table id="kTbl"></table></div>
+    <div class="note">GAP: agresivo = 50% del pool · moderado = 25% · &lt;1.20% o fuera de rango = sin bono. IF: diario (≥97.5% completo · ≥97.0% mitad). PF = cálculo especial (marcado).</div>
+  </div>
+
+  <div class="panel" id="pPanel" style="display:none">
+    <h3>Bono por persona <span class="pill" id="pPill"></span></h3>
+    <div class="tools">
+      <input type="search" id="pSearch" placeholder="Buscar persona, cocina o RFC…">
+      <select id="pCity"><option value="">Todas las ciudades</option></select>
+      <select id="pStatus"><option value="">Todos</option><option value="bono">Con bono</option><option value="sin">Sin bono</option><option value="nuevo">Nuevo ingreso</option></select>
+      <span class="muted" id="pCount"></span>
+    </div>
+    <div class="tblwrap"><table id="pTbl"></table></div>
+    <div class="note">Asistencia = pool × (D−faltas)/D · falta injustificada ⇒ sin bono · medio tiempo ×0.75 · nuevo ingreso = piso garantizado por ciudad (CDMX/GDL/MER/PUE $2,500 · MTY $1,500), prorrateado si ingresó en el mes.</div>
+  </div>
+
+  <div class="empty" id="empty">
+    <p>Todavía no hay datos.<br>Subí el archivo <b>«CP's MEX &lt;mes&gt;.xlsx»</b> y la herramienta replica el cálculo del cierre: pool por cocina y reparto por persona.</p>
+  </div>
+</div>
+<div class="foot">Foodology · Ops Excellence — cálculo replicado del workbook de Bono Mensual WOW México</div>
+
+<script>
+/* ===================== PARÁMETROS (reverse-engineered del cierre) ===================== */
+const MAXIFGAP={MERIDA:{A:5200,B:5000,C:4800},GDL:{A:5100,B:4500,C:3800},MTY:{A:2800,B:2500,C:2300},CDMX:{A:4700,B:4300,C:3800,AA:6000,PF:3800},PUEBLA:{A:4700,B:4300,C:3800,PF:3800}};
+const GAPTH={A:{agr:1.70,mod:2.20},B:{agr:1.90,mod:2.55},C:{agr:2.10,mod:3.00},AA:{agr:1.50,mod:1.80},PF:{agr:2.10,mod:3.00}};
+const GAP_LOW=1.20;                    // por debajo => sin bono (dato sospechoso)
+const GAP_LOW_PF=0.0;
+const RAPPI_MAX={MERIDA:200,GDL:200,MTY:400,CDMX:400,PUEBLA:400};
+const GUAR={CDMX:2500,GDL:2500,MERIDA:2500,PUEBLA:2500,MTY:1500};
+const GUAR_WIN_START=new Date(2026,6,17);   // 17/jul: ventana de garantía nuevos ingresos
+const PF_KITCHENS=['51','52','54','55','56'];// puntos físicos (cálculo especial)
+const CITY_MAP={'ciudad de méxico':'CDMX','ciudad de mexico':'CDMX','cdmx':'CDMX','zona centro':'CDMX','guadalajara':'GDL','gdl':'GDL','monterrey':'MTY','mty':'MTY','merida':'MERIDA','mérida':'MERIDA','puebla':'PUEBLA'};
+
+/* ===================== HELPERS ===================== */
+const $=id=>document.getElementById(id);
+const norm=s=>String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,' ');
+const kcode=s=>{const m=String(s||'').match(/\d{1,3}/);return m?String(+m[0]).padStart(2,'0'):'';};
+const money=n=>'$'+(Math.round(n)).toLocaleString('en-US');
+const money2=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function pctNum(v){ if(v==null||v==='')return null; if(typeof v==='number')return v>1.5?v:v*100; const s=String(v).replace('%','').replace(',','.').trim(); const n=parseFloat(s); if(isNaN(n))return null; return (String(v).includes('%')||n<1.5)?(String(v).includes('%')?n:n*100):n; }
+function cityOf(raw){ const c=CITY_MAP[norm(raw)]; return c||null; }
+function excelDate(v){
+  if(v instanceof Date)return isNaN(v)?null:v;
+  if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400*1000));return isNaN(d)?null:d;}
+  const s=String(v||'').trim(); if(!s)return null;
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m){let a=+m[1],b=+m[2],y=+m[3]; y=y<100?2000+y:y; let day,mon;
+    if(a>12){day=a;mon=b;} else if(b>12){mon=a;day=b;} else {day=a;mon=b;} // ambiguo => D/M (workbook ES)
+    return new Date(y,mon-1,day); }
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+
+/* ===================== ESTADO ===================== */
+let META={}, GAPK={}, IFDAILY={}, RAPPIK={}, PEOPLE=[], KITCHENS=[], MONTH={label:'',D:31,y:2026,m:7};
+let sortK={k:'poolTotal',dir:-1}, sortP={k:'asis',dir:-1};
+
+/* ===================== PARSEO DEL WORKBOOK ===================== */
+function findSheet(wb,names){ const low=wb.SheetNames.map(n=>n.toLowerCase()); for(const want of names){ const i=low.findIndex(n=>n.includes(want)); if(i>=0)return wb.Sheets[wb.SheetNames[i]]; } return null; }
+function rows(sh){ return sh?XLSX.utils.sheet_to_json(sh,{header:1,defval:'',raw:true}):[]; }
+
+function parseMeta(wb){
+  META={};
+  const sh=findSheet(wb,['param/abc','param','abc']); if(!sh)return;
+  const R=rows(sh);
+  // localizar cabecera con Ciudad/Cocina/Categoria
+  let hr=-1,ci={};
+  for(let i=0;i<R.length;i++){ const low=R[i].map(norm);
+    const cCity=low.findIndex(x=>x==='ciudad'), cKit=low.findIndex(x=>x==='cocina'), cCat=low.findIndex(x=>x==='categoria'||x==='categoría');
+    if(cCity>=0&&cKit>=0&&cCat>=0){ hr=i; ci={city:cCity,kit:cKit,cat:cCat}; break; } }
+  if(hr<0)return;
+  for(let i=hr+1;i<R.length;i++){ const row=R[i]; const kraw=row[ci.kit]; const code=kcode(kraw); if(!code)continue;
+    const city=cityOf(row[ci.city]); let type=String(row[ci.cat]||'').trim().toUpperCase();
+    if(PF_KITCHENS.includes(code))type='PF';
+    if(!['A','B','C','AA','PF'].includes(type))continue;
+    if(!META[code]) META[code]={code,name:String(kraw).replace(/^\d+\s*/,'').trim(),city:city||'CDMX',type};
+  }
+}
+function parseGAP(wb){
+  GAPK={}; const sh=findSheet(wb,['gap']); if(!sh)return;
+  const R=rows(sh); let dcol=null;
+  for(const row of R){
+    // detectar fecha de datos p/mes
+    for(const c of row){ const d=(typeof c==='number'&&c>40000)?excelDate(c):(String(c).match(/\d{1,2}\/\d{1,2}\/\d{4}/)?excelDate(c):null); if(d&&!MONTH.set){ MONTH.y=d.getFullYear();MONTH.m=d.getMonth();MONTH.set=1; } }
+    const code=kcode(row.find(c=>/\d{2}\s+\D/.test(String(c)))|| (typeof row[1]!=='undefined'?row[1]:'') || row[0]);
+    // buscar % en la fila
+    let g=null; for(const c of row){ const p=pctNum(c); if(p!=null&&p>0&&p<15){ g=p; } }
+    const kc=kcode(row.join(' '));
+    if(kc&&g!=null&&GAPK[kc]==null) GAPK[kc]=g;
+  }
+}
+function parseIF(wb){
+  IFDAILY={}; const sh=findSheet(wb,['otif']); if(!sh)return;
+  const R=rows(sh); if(!R.length)return;
+  // header
+  let hr=R.findIndex(r=>r.map(norm).some(x=>x==='infull'||x==='in full'||x.includes('infull')));
+  if(hr<0)hr=0; const H=R[hr].map(norm);
+  const ck=H.findIndex(x=>x.includes('kitchen')); const cf=H.findIndex(x=>x==='infull'||x.includes('infull')||x==='in full');
+  if(ck<0||cf<0)return;
+  for(let i=hr+1;i<R.length;i++){ const row=R[i]; const code=kcode(row[ck]); const inf=pctNum(row[cf]); if(!code||inf==null)continue; (IFDAILY[code]=IFDAILY[code]||[]).push(inf); }
+}
+function parseRappi(wb){
+  RAPPIK={}; const sh=findSheet(wb,['rappi']); if(!sh)return;
+  const R=rows(sh); if(!R.length)return; const H=R[0];
+  for(let i=1;i<R.length;i++){ const row=R[i]; const code=kcode(row[0]); if(!code)continue;
+    let hit=0,tot=0; for(let j=1;j<row.length;j++){ const p=pctNum(row[j]); if(p!=null){tot++; if(p>=5)hit++;} }
+    RAPPIK[code]= tot? hit/tot : 0; }
+}
+function parseRoster(wb){
+  PEOPLE=[]; const sh=findSheet(wb,['roster']); if(!sh)return;
+  const R=rows(sh); let hr=R.findIndex(r=>r.map(norm).some(x=>x.includes('colaborador'))); if(hr<0)return;
+  const H=R[hr].map(norm);
+  const cRfc=H.findIndex(x=>x==='rfc'), cName=H.findIndex(x=>x.includes('colaborador')),
+        cStat=H.findIndex(x=>x==='status'), cPos=H.findIndex(x=>x==='puesto'), cCity=H.findIndex(x=>x==='ciudad'),
+        cIng=H.findIndex(x=>x.includes('ingreso')&&!x.includes('nuevo')), cContr=H.findIndex(x=>x.includes('contrat')),
+        cKit=H.findIndex(x=>x.includes('kitchen'));
+  for(let i=hr+1;i<R.length;i++){ const row=R[i]; const rfc=String(row[cRfc]||'').trim(); const name=String(row[cName]||'').trim();
+    if(!rfc||!name)continue; if(cStat>=0 && norm(row[cStat])!=='activo')continue;
+    const code=kcode(row[cKit]); if(!code)continue;
+    PEOPLE.push({rfc,name,pos:String(row[cPos]||'').trim(),city:cityOf(row[cCity]),code,
+      contrato:String(row[cContr]||'').trim().toUpperCase(), ingreso:excelDate(row[cIng])});
+  }
+}
+function parseAsist(wb){
+  const map={}; const sh=findSheet(wb,['asistencias']); if(!sh)return map;
+  const R=rows(sh); let hr=R.findIndex(r=>r.map(norm).some(x=>x==='rfc')); if(hr<0)return map;
+  const H=R[hr].map(norm);
+  const cRfc=H.findIndex(x=>x==='rfc'), cType=H.findIndex(x=>x==='type'), cDays=H.findIndex(x=>x==='days'),
+        cStart=H.findIndex(x=>x==='startdate');
+  const INJ=new Set(['absence_without_just_couse','sanction']);
+  const SKIP=new Set(['tardiness','birthday']); // retardo/cumple no prorratean días
+  for(let i=hr+1;i<R.length;i++){ const row=R[i]; const rfc=String(row[cRfc]||'').trim(); if(!rfc)continue;
+    const t=norm(row[cType]); if(!t)continue;
+    const st=cStart>=0?excelDate(row[cStart]):null;
+    if(st && (st.getFullYear()!==MONTH.y || st.getMonth()!==MONTH.m)) continue; // solo el mes
+    const days=Number(row[cDays])||0; if(!days)continue;
+    const o=map[rfc]||(map[rfc]={just:0,inj:0});
+    if(INJ.has(t)) o.inj+=days; else if(!SKIP.has(t)) o.just+=days;
+  }
+  return map;
+}
+
+/* ===================== CÁLCULO ===================== */
+function gapCat(type,gap){ if(gap==null)return{cat:'sin',w:0}; const low=type==='PF'?GAP_LOW_PF:GAP_LOW; const th=GAPTH[type]||GAPTH.C;
+  if(gap<low) return{cat:'sin',w:0};
+  if(gap<=th.agr) return{cat:'agr', w: type==='PF'?0.30:0.50};
+  if(gap<=th.mod) return{cat:'mod', w: type==='PF'?0.15:0.25};
+  return{cat:'sin',w:0}; }
+function ifBono(code,type,max){ const arr=IFDAILY[code]; if(!arr||!arr.length)return{bono:0,agr:0,mod:0,sin:0,n:0};
+  const perDay=(max*0.5)/arr.length; let b=0,a=0,m=0,s=0;
+  for(const inf of arr){ if(inf>=97.5){b+=perDay;a++;} else if(inf>=97.0){b+=perDay*0.5;m++;} else s++; }
+  return{bono:b,agr:a,mod:m,sin:s,n:arr.length}; }
+
+function computeKitchens(){
+  KITCHENS=[];
+  const codes=new Set([...Object.keys(META),...Object.keys(GAPK)]);
+  for(const code of codes){ const meta=META[code]; if(!meta)continue;
+    const {city,type,name}=meta; const max=(MAXIFGAP[city]&&MAXIFGAP[city][type])||MAXIFGAP[city]?.C||0;
+    const gap=GAPK[code]!=null?GAPK[code]:null;
+    const gc=gapCat(type,gap); const gBono=max*gc.w;
+    const ifr=ifBono(code,type,max);
+    const rMax=RAPPI_MAX[city]||0; const rBono=(RAPPIK[code]||0)>0? rMax : 0;
+    const pool=gBono+ifr.bono+rBono;
+    KITCHENS.push({code,name,city,type,pf:type==='PF',gap,gapCat:gc.cat,gapBono:gBono,ifBono:ifr.bono,ifDays:ifr.n,ifAgr:ifr.agr,ifMod:ifr.mod,rappiBono:rBono,poolTotal:pool});
+  }
+}
+function computePeople(asist){
+  const kByCode={}; KITCHENS.forEach(k=>kByCode[k.code]=k);
+  const D=MONTH.D;
+  for(const p of PEOPLE){ const k=kByCode[p.code]; if(!k){p.skip=1;continue;}
+    const city=p.city||k.city; const mt=p.contrato==='MEDIO TIEMPO';
+    const pool=k.poolTotal*(mt?0.75:1);
+    const ab=asist[p.rfc]||{just:0,inj:0};
+    let just=ab.just, inj=ab.inj;
+    // nuevo ingreso del mes: días previos al ingreso cuentan como falta justificada
+    let hiredThisMonth=false, dayHire=0;
+    if(p.ingreso && p.ingreso.getFullYear()===MONTH.y && p.ingreso.getMonth()===MONTH.m){ hiredThisMonth=true; dayHire=p.ingreso.getDate(); just=Math.max(just, dayHire-1); }
+    const sinBono = inj>=1;
+    let normal = sinBono?0: pool*Math.max(0,(D-just))/D;
+    // piso garantizado (informativo) — se muestra aunque no gane
+    let nuevo=0, inWin = p.ingreso && p.ingreso>=GUAR_WIN_START;
+    if(inWin){ const g=GUAR[city]||0; nuevo = hiredThisMonth ? g*Math.max(0,(D-dayHire))/D : g; }
+    let asis = sinBono?0: Math.max(normal, nuevo);
+    p.city=city; p.kitchen=k.name; p.type=k.type; p.pool=pool; p.just=just; p.inj=inj;
+    p.sinBono=sinBono; p.nuevo=nuevo; p.asis=asis; p.newHire=inWin;
+  }
+}
+
+/* ===================== RENDER ===================== */
+function fmtGap(g){ return g==null?'—':g.toFixed(2)+'%'; }
+function catTag(c){ return c==='agr'?'<span class="tag t-agr">Agresivo</span>':c==='mod'?'<span class="tag t-mod">Moderado</span>':'<span class="tag t-sin">Sin bono</span>'; }
+
+function renderCards(){
+  const nk=KITCHENS.length, np=PEOPLE.filter(p=>!p.skip).length;
+  const conBono=PEOPLE.filter(p=>!p.skip&&p.asis>0).length;
+  const sin=PEOPLE.filter(p=>!p.skip&&p.sinBono).length;
+  const totalPool=KITCHENS.reduce((s,k)=>s+k.poolTotal,0);
+  const totalPay=PEOPLE.filter(p=>!p.skip).reduce((s,p)=>s+p.asis,0);
+  $('cards').style.display='grid';
+  $('cards').innerHTML=[
+    ['Cocinas',nk,'con datos'],
+    ['Personas',np, conBono+' con bono · '+sin+' sin bono'],
+    ['Pool cocinas',money(totalPool),'GAP+IF+Rappi (100% asist.)'],
+    ['Bono a pagar',money(totalPay),'con asistencia y nuevos ingresos'],
+  ].map(([l,v,d])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+}
+function renderCity(){
+  const by={}; PEOPLE.filter(p=>!p.skip).forEach(p=>{ const c=p.city||'?'; const o=by[c]||(by[c]={city:c,ppl:0,sin:0,pay:0,gap:0,iff:0,rap:0}); o.ppl++; if(p.sinBono)o.sin++; o.pay+=p.asis; });
+  KITCHENS.forEach(k=>{ const o=by[k.city]; if(o){o.gap+=k.gapBono;o.iff+=k.ifBono;o.rap+=k.rappiBono;} });
+  const arr=Object.values(by).sort((a,b)=>b.pay-a.pay);
+  const tot=arr.reduce((s,o)=>({ppl:s.ppl+o.ppl,sin:s.sin+o.sin,pay:s.pay+o.pay,gap:s.gap+o.gap,iff:s.iff+o.iff,rap:s.rap+o.rap}),{ppl:0,sin:0,pay:0,gap:0,iff:0,rap:0});
+  const h=`<thead><tr><th>Ciudad</th><th class="r">Personas</th><th class="r">Sin bono</th><th class="r">Pool GAP</th><th class="r">Pool IF</th><th class="r">Pool Rappi</th><th class="r">Bono a pagar</th></tr></thead>`;
+  const b='<tbody>'+arr.map(o=>`<tr><td><b>${o.city}</b></td><td class="r">${o.ppl}</td><td class="r">${o.sin}</td><td class="r money">${money(o.gap)}</td><td class="r money">${money(o.iff)}</td><td class="r money">${money(o.rap)}</td><td class="r money"><b>${money(o.pay)}</b></td></tr>`).join('')
+    +`<tr style="background:#f0f4f9"><td><b>Total MX</b></td><td class="r"><b>${tot.ppl}</b></td><td class="r"><b>${tot.sin}</b></td><td class="r money"><b>${money(tot.gap)}</b></td><td class="r money"><b>${money(tot.iff)}</b></td><td class="r money"><b>${money(tot.rap)}</b></td><td class="r money"><b>${money(tot.pay)}</b></td></tr></tbody>`;
+  $('cityTbl').innerHTML=h+b; $('cityPanel').style.display=''; $('cityMonth').textContent=MONTH.label;
+}
+function fillSelect(sel,vals){ const cur=sel.value; sel.innerHTML=sel.children[0].outerHTML+vals.map(v=>`<option>${v}</option>`).join(''); sel.value=cur; }
+function renderKitchens(){
+  const q=norm($('kSearch').value), fc=$('kCity').value, ft=$('kType').value;
+  let arr=KITCHENS.filter(k=>(!fc||k.city===fc)&&(!ft||k.type===ft)&&(!q||norm(k.name+' '+k.code).includes(q)));
+  arr.sort((a,b)=>{const d=sortK.dir; let x=a[sortK.k],y=b[sortK.k]; if(typeof x==='string'){x=norm(x);y=norm(y);} return x<y?-d:x>y?d:0;});
+  const cols=[['code','Cód',''],['name','Cocina',''],['city','Ciudad',''],['type','Tipo',''],['gap','GAP','r'],['gapBono','Bono GAP','r'],['ifBono','Bono IF','r'],['rappiBono','Rappi','r'],['poolTotal','Pool total','r']];
+  const h='<thead><tr>'+cols.map(c=>`<th class="${c[2]}" data-k="${c[0]}">${c[1]}</th>`).join('')+'</tr></thead>';
+  const b='<tbody>'+arr.map(k=>`<tr>
+    <td class="muted">${k.code}</td>
+    <td><b>${k.name}</b>${k.pf?' <span class="tag t-pf">PF</span>':''}</td>
+    <td>${k.city}</td><td>${k.type}</td>
+    <td class="r">${fmtGap(k.gap)} ${catTag(k.gapCat)}</td>
+    <td class="r money">${money(k.gapBono)}</td>
+    <td class="r money">${money(k.ifBono)}${k.ifDays?` <span class="muted">(${k.ifAgr}/${k.ifMod}/${k.ifDays})</span>`:''}</td>
+    <td class="r money">${money(k.rappiBono)}</td>
+    <td class="r money"><b>${money(k.poolTotal)}</b>${k.pf?'<div class="spec">especial</div>':''}</td></tr>`).join('')+'</tbody>';
+  $('kTbl').innerHTML=h+b; $('kPanel').style.display='';
+  $('kCount').textContent=arr.length+' cocinas';
+  $('kTbl').querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; sortK.dir=(sortK.k===k?-sortK.dir:-1);sortK.k=k;renderKitchens();});
+}
+function renderPeople(){
+  const q=norm($('pSearch').value), fc=$('pCity').value, fs=$('pStatus').value;
+  let arr=PEOPLE.filter(p=>!p.skip).filter(p=>(!fc||p.city===fc)
+    &&(fs===''||(fs==='bono'&&p.asis>0)||(fs==='sin'&&p.sinBono)||(fs==='nuevo'&&p.nuevo>0))
+    &&(!q||norm(p.name+' '+p.kitchen+' '+p.rfc).includes(q)));
+  arr.sort((a,b)=>{const d=sortP.dir; let x=a[sortP.k],y=b[sortP.k]; if(typeof x==='string'){x=norm(x);y=norm(y);} return x<y?-d:x>y?d:0;});
+  const cols=[['name','Colaborador',''],['pos','Puesto',''],['kitchen','Cocina',''],['city','Ciudad',''],['contrato','Contrato',''],['just','Faltas J','r'],['inj','Faltas I','r'],['pool','Pool','r'],['nuevo','Piso N.I.','r'],['asis','Bono final','r']];
+  const h='<thead><tr>'+cols.map(c=>`<th class="${c[2]}" data-k="${c[0]}">${c[1]}</th>`).join('')+'</tr></thead>';
+  const b='<tbody>'+arr.slice(0,1200).map(p=>`<tr>
+    <td><b>${p.name}</b>${p.newHire?' <span class="tag t-pf">N.I.</span>':''}</td>
+    <td class="muted">${p.pos}</td><td>${p.kitchen}</td><td>${p.city}</td>
+    <td class="muted">${p.contrato==='MEDIO TIEMPO'?'½ tiempo':'completo'}</td>
+    <td class="r">${p.just||0}</td><td class="r">${p.inj?'<b style="color:#b23333">'+p.inj+'</b>':'0'}</td>
+    <td class="r money">${money(p.pool)}</td>
+    <td class="r money">${p.nuevo?money(p.nuevo):'—'}</td>
+    <td class="r money">${p.sinBono?'<span class="tag t-sin">Sin bono</span>':'<b>'+money2(p.asis)+'</b>'}</td></tr>`).join('')+'</tbody>';
+  $('pTbl').innerHTML=h+b; $('pPanel').style.display='';
+  $('pCount').textContent=arr.length+' personas'+(arr.length>1200?' (mostrando 1200)':'');
+  $('pPill').textContent=MONTH.label;
+  $('pTbl').querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; sortP.dir=(sortP.k===k?-sortP.dir:-1);sortP.k=k;renderPeople();});
+}
+function renderAll(){
+  $('empty').style.display='none';
+  const cities=[...new Set(KITCHENS.map(k=>k.city))].sort();
+  fillSelect($('kCity'),cities); fillSelect($('pCity'),cities);
+  fillSelect($('kType'),[...new Set(KITCHENS.map(k=>k.type))].sort());
+  renderCards(); renderCity(); renderKitchens(); renderPeople();
+  $('btnCsvK').disabled=false; $('btnCsvP').disabled=false;
+}
+
+/* ===================== CSV ===================== */
+function dl(name,rows){ const csv=rows.map(r=>r.map(c=>{const s=String(c==null?'':c); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download=name; a.click(); }
+$('btnCsvK').onclick=()=>dl('bono_cocinas_'+MONTH.label.replace(/\s/g,'_')+'.csv',
+  [['Codigo','Cocina','Ciudad','Tipo','GAP%','Cat GAP','Bono GAP','Bono IF','Rappi','Pool total'],
+   ...KITCHENS.map(k=>[k.code,k.name,k.city,k.type,k.gap,k.gapCat,k.gapBono.toFixed(2),k.ifBono.toFixed(2),k.rappiBono,k.poolTotal.toFixed(2)])]);
+$('btnCsvP').onclick=()=>dl('bono_personas_'+MONTH.label.replace(/\s/g,'_')+'.csv',
+  [['RFC','Colaborador','Puesto','Cocina','Ciudad','Contrato','Faltas Just','Faltas Inj','Pool','Piso NI','Bono final'],
+   ...PEOPLE.filter(p=>!p.skip).map(p=>[p.rfc,p.name,p.pos,p.kitchen,p.city,p.contrato,p.just,p.inj,p.pool.toFixed(2),p.nuevo.toFixed(2),p.sinBono?0:p.asis.toFixed(2)])]);
+
+/* ===================== CARGA ===================== */
+function showErr(m){ const e=$('err'); e.textContent=m; e.style.display='block'; }
+function handle(file){
+  $('err').style.display='none';
+  const rd=new FileReader();
+  rd.onload=e=>{ try{
+    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+    MONTH={label:'',D:31,y:2026,m:7,set:0};
+    parseMeta(wb); parseGAP(wb); parseIF(wb); parseRappi(wb); parseRoster(wb);
+    const asist=parseAsist(wb);
+    const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    MONTH.D=new Date(MONTH.y,MONTH.m+1,0).getDate(); MONTH.label=MN[MONTH.m]+' '+MONTH.y;
+    computeKitchens(); computePeople(asist);
+    if(!KITCHENS.length){ showErr('No pude leer cocinas. Revisá que el archivo tenga las pestañas GAP y Param/ABC.'); return; }
+    $('hsub').textContent=file.name+' · '+MONTH.label+' · '+KITCHENS.length+' cocinas · '+PEOPLE.filter(p=>!p.skip).length+' personas';
+    renderAll();
+  }catch(err){ showErr('Error leyendo el archivo: '+err.message); console.error(err); } };
+  rd.readAsArrayBuffer(file);
+}
+$('file').onchange=e=>{ if(e.target.files[0])handle(e.target.files[0]); };
+const drop=$('drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hot');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hot');}));
+drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f)handle(f); });
+['kSearch','kCity','kType'].forEach(id=>$(id).addEventListener('input',renderKitchens));
+['pSearch','pCity','pStatus'].forEach(id=>$(id).addEventListener('input',renderPeople));
+</script>
+</body>
+</html>
