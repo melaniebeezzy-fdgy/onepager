@@ -77,9 +77,9 @@ td.money{font-variant-numeric:tabular-nums}
 
   <div class="bar">
     <label class="drop" id="drop">
-      <input type="file" id="file" accept=".xlsx,.xlsm,.xls" style="display:none">
-      <b>📄 Subí el workbook de bonos</b>
-      <small>«CP's MEX &lt;mes&gt;.xlsx» — se lee y calcula en tu navegador, no se sube a ningún lado</small>
+      <input type="file" id="file" accept=".xlsx,.xlsm,.xls,.csv" style="display:none">
+      <b>📄 Subí el workbook de bonos (.xlsx) o el CSV de incidencias de Avatar</b>
+      <small>«CP's MEX &lt;mes&gt;.xlsx» + opcional «Aprobar incidencia…csv» — se lee y calcula en tu navegador, no se sube a ningún lado</small>
     </label>
     <button class="btn o" id="btnCsvK" disabled>Exportar cocinas CSV</button>
     <button class="btn o" id="btnCsvP" disabled>Exportar personas CSV</button>
@@ -224,23 +224,34 @@ function parseRoster(wb){
       contrato:String(row[cContr]||'').trim().toUpperCase(), ingreso:excelDate(row[cIng])});
   }
 }
-function parseAsist(wb){
-  const map={}; const sh=findSheet(wb,['asistencias']); if(!sh)return map;
-  const R=rows(sh); let hr=R.findIndex(r=>r.map(norm).some(x=>x==='rfc')); if(hr<0)return map;
+const ASIST_INJ=new Set(['absence_without_just_couse','sanction']);
+const ASIST_SKIP=new Set(['tardiness','birthday']); // retardo no resta día; cumpleaños no afecta bono
+// Depuración = la que hace People a mano: conservar solo lo que toca el mes del bono,
+// recortar los días al mes (incidencias largas jul→ago / ago→sep) y quitar Birthday.
+function ingestAsist(R){
+  const map={}; if(!R||!R.length)return map;
+  let hr=R.findIndex(r=>r.map(norm).some(x=>x==='rfc'||x==='document')); if(hr<0)hr=0;
   const H=R[hr].map(norm);
-  const cRfc=H.findIndex(x=>x==='rfc'), cType=H.findIndex(x=>x==='type'), cDays=H.findIndex(x=>x==='days'),
-        cStart=H.findIndex(x=>x==='startdate');
-  const INJ=new Set(['absence_without_just_couse','sanction']);
-  const SKIP=new Set(['tardiness','birthday']); // retardo/cumple no prorratean días
+  const cRfc=H.findIndex(x=>x==='rfc'||x==='document'), cType=H.findIndex(x=>x==='type'),
+        cStart=H.findIndex(x=>x==='startdate'), cEnd=H.findIndex(x=>x==='enddate');
+  if(cRfc<0||cType<0||cStart<0)return map;
+  const mS=new Date(MONTH.y,MONTH.m,1), mE=new Date(MONTH.y,MONTH.m+1,0);
+  const clip=(a,b)=>{ const s=a<mS?mS:a, e=b>mE?mE:b; return e<s?0:Math.round((e-s)/86400000)+1; };
   for(let i=hr+1;i<R.length;i++){ const row=R[i]; const rfc=String(row[cRfc]||'').trim(); if(!rfc)continue;
-    const t=norm(row[cType]); if(!t)continue;
-    const st=cStart>=0?excelDate(row[cStart]):null;
-    if(st && (st.getFullYear()!==MONTH.y || st.getMonth()!==MONTH.m)) continue; // solo el mes
-    const days=Number(row[cDays])||0; if(!days)continue;
+    const t=norm(row[cType]); if(!t||t==='birthday')continue;
+    const s=excelDate(row[cStart]); if(!s)continue; const e=cEnd>=0?(excelDate(row[cEnd])||s):s;
+    if(!(s<=mE && e>=mS))continue;              // debe solapar el mes del bono
+    const dias=clip(s,e); if(!dias)continue;    // días efectivos dentro del mes
     const o=map[rfc]||(map[rfc]={just:0,inj:0});
-    if(INJ.has(t)) o.inj+=days; else if(!SKIP.has(t)) o.just+=days;
+    if(ASIST_INJ.has(t)) o.inj+=dias; else if(!ASIST_SKIP.has(t)) o.just+=dias;
   }
   return map;
+}
+function parseAsist(wb){ const sh=findSheet(wb,['asistencias']); return sh?ingestAsist(rows(sh)):{}; }
+// CSV crudo exportado de Avatar (Aprobar incidencia): document,type,startDate,endDate…
+function parseAsistCsv(text){
+  const wb=XLSX.read(text,{type:'string'}); const sh=wb.Sheets[wb.SheetNames[0]];
+  return ingestAsist(rows(sh));
 }
 
 /* ===================== CÁLCULO ===================== */
@@ -378,23 +389,37 @@ $('btnCsvP').onclick=()=>dl('bono_personas_'+MONTH.label.replace(/\s/g,'_')+'.cs
    ...PEOPLE.filter(p=>!p.skip).map(p=>[p.rfc,p.name,p.pos,p.kitchen,p.city,p.contrato,p.just,p.inj,p.pool.toFixed(2),p.nuevo.toFixed(2),p.sinBono?0:p.asis.toFixed(2)])]);
 
 /* ===================== CARGA ===================== */
+let WB=null, ASIST_OVR=null, ASIST_SRC='';
+const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function showErr(m){ const e=$('err'); e.textContent=m; e.style.display='block'; }
+function recompute(fname){
+  if(!WB){ showErr('Primero subí el workbook de bonos (.xlsx). El CSV de Avatar reemplaza solo las asistencias.'); return; }
+  MONTH={label:'',D:31,y:2026,m:7,set:0};
+  parseMeta(WB); parseGAP(WB); parseIF(WB); parseRappi(WB); parseRoster(WB);
+  MONTH.D=new Date(MONTH.y,MONTH.m+1,0).getDate(); MONTH.label=MN[MONTH.m]+' '+MONTH.y;
+  const asist = ASIST_OVR || parseAsist(WB);
+  computeKitchens(); computePeople(asist);
+  if(!KITCHENS.length){ showErr('No pude leer cocinas. Revisá que el archivo tenga las pestañas GAP y Param/ABC.'); return; }
+  const nInc=Object.keys(asist).length;
+  $('hsub').textContent=(fname||'')+' · '+MONTH.label+' · '+KITCHENS.length+' cocinas · '+PEOPLE.filter(p=>!p.skip).length+' personas · asistencias: '+ASIST_SRC+' ('+nInc+' con incidencia)';
+  renderAll();
+}
 function handle(file){
   $('err').style.display='none';
+  const isCsv=/\.csv$/i.test(file.name);
   const rd=new FileReader();
   rd.onload=e=>{ try{
-    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
-    MONTH={label:'',D:31,y:2026,m:7,set:0};
-    parseMeta(wb); parseGAP(wb); parseIF(wb); parseRappi(wb); parseRoster(wb);
-    const asist=parseAsist(wb);
-    const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    MONTH.D=new Date(MONTH.y,MONTH.m+1,0).getDate(); MONTH.label=MN[MONTH.m]+' '+MONTH.y;
-    computeKitchens(); computePeople(asist);
-    if(!KITCHENS.length){ showErr('No pude leer cocinas. Revisá que el archivo tenga las pestañas GAP y Param/ABC.'); return; }
-    $('hsub').textContent=file.name+' · '+MONTH.label+' · '+KITCHENS.length+' cocinas · '+PEOPLE.filter(p=>!p.skip).length+' personas';
-    renderAll();
+    if(isCsv){                                   // CSV crudo de Avatar (Aprobar incidencia)
+      ASIST_OVR=parseAsistCsv(e.target.result); ASIST_SRC='Avatar '+file.name;
+      if(!WB){ showErr('Incidencias cargadas ('+Object.keys(ASIST_OVR).length+' personas). Ahora subí el workbook de bonos (.xlsx) para calcular.'); return; }
+      recompute(file.name);
+    } else {                                     // workbook de bonos
+      WB=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      ASIST_SRC = ASIST_OVR ? 'Avatar (depurado)' : 'pestaña Asistencias del workbook';
+      recompute(file.name);
+    }
   }catch(err){ showErr('Error leyendo el archivo: '+err.message); console.error(err); } };
-  rd.readAsArrayBuffer(file);
+  if(isCsv) rd.readAsText(file); else rd.readAsArrayBuffer(file);
 }
 $('file').onchange=e=>{ if(e.target.files[0])handle(e.target.files[0]); };
 const drop=$('drop');
