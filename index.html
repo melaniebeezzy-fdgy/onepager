@@ -922,8 +922,7 @@ function companyWide(){
     stat('#e2a52a','En atención',aten,'#fdf6e8')+
     stat('#2f9e5f','Cumplen',ok,'#eef7f0')+'</div>';
   var chips= top.length? '<div class="card mt" style="padding:9px 13px;font-size:11.5px;color:var(--slate)"><b style="color:var(--primary)">Indicadores con más cocinas en rojo:</b> '+top.slice(0,7).map(function(n){return '<span style="display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px 3px 0 0;background:#fdeceb;color:#d64545">'+n+' · '+byKpi[n]+'</span>';}).join('')+'</div>':'';
-  var pais=({COL:'Colombia',MEX:'México',PER:'Perú'}[selCountry])||selCountry;
-  return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:15px">Foodology '+pais+' · resumen general</h1></div></div>'+strip+chips;
+  return '<div class="mt">'+strip+chips+'</div>';
 }
 /* Priorización por Ops: qué cocina revisar primero según indicadores que no cumple */
 function opsPriority(){
