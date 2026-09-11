@@ -857,13 +857,20 @@ function _rankKitchens(kitchens){
   rows.sort(function(a,b){return b.score-a.score||b.impRed-a.impRed||b.red.length-a.red.length;});
   return rows;
 }
-/* Vista "Todos los Ops": una tarjeta-resumen por cada Ops manager */
+/* City manager -> Ops que le reportan (por país). Secciona el "Resumen por Ops". */
+var CITY_OPS={COL:{
+  'Jose Rodriguez':['Jose Rodriguez','Ulises Torres'],
+  'Diego':['Juan Pablo Gómez'],
+  'Juan Antonio Angel':['Sara Sierra','Kevin Ramirez','Daniel Beltran'],
+  'Jaime Losada':['Leidy Pinzon','Laura Hernández','Sebastian Bernal','Andres Pulgarin']
+}};
+/* Vista "Todos los Ops": tarjeta-resumen por Ops, agrupada por City */
 function allOpsSummary(){
   var mp=curOps(), byops={};
   Object.keys(curIF()).forEach(function(k){var o=mp[k]; if(!o)return; (byops[o]=byops[o]||[]).push(k);});
-  var names=Object.keys(byops).sort(); if(!names.length)return '';
+  var names=Object.keys(byops); if(!names.length)return '';
   function chip(n,r){return '<span style="display:inline-block;font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:20px;margin:2px 3px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
-  var cards=names.map(function(o){
+  function opsCard(o){
     var rows=_rankKitchens(byops[o]);
     var crit=rows.filter(function(r){return r.red.length>4;}).length;
     var aten=rows.filter(function(r){return r.red.length<=4&&r.score>0;}).length;
@@ -875,8 +882,21 @@ function allOpsSummary(){
       '<b style="font-size:13px;color:var(--primary)">'+o+'</b>'+
       '<span style="margin-left:auto;font-size:10px;color:var(--muted);white-space:nowrap">'+rows.length+' coc'+(crit?' · <span style="color:#d64545;font-weight:700">'+crit+' crít</span>':(aten?' · <span style="color:#e2a52a;font-weight:700">'+aten+' at.</span>':' · <span style="color:#2f9e5f;font-weight:700">ok</span>'))+'</span></div>'+
       lines+'</div>';
-  }).join('');
-  return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">Resumen por Ops</h1></div></div><div class="grid g3">'+cards+'</div>';
+  }
+  function section(title,list,sub){return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">'+title+(sub?' <span style="font-size:10px;color:var(--muted);font-weight:600">· '+sub+'</span>':'')+'</h1></div></div><div class="grid g3">'+list.map(opsCard).join('')+'</div>';}
+  var cmap=CITY_OPS[selCountry];
+  if(!cmap) return section('Resumen por Ops', names.sort());
+  var out='', used={};
+  Object.keys(cmap).forEach(function(city){
+    var list=cmap[city].filter(function(o){return byops[o];}); list.forEach(function(o){used[o]=1;});
+    if(!list.length)return;
+    var allk=[]; list.forEach(function(o){allk=allk.concat(byops[o]);});
+    var cc=_rankKitchens(allk).filter(function(r){return r.red.length>4;}).length;
+    out+=section('🏙️ City · '+city, list, allk.length+' cocinas'+(cc?' · '+cc+' críticas':''));
+  });
+  var rest=names.filter(function(o){return !used[o];}).sort();
+  if(rest.length) out+=section('🏙️ City · Otros', rest);
+  return out;
 }
 /* Resumen general de todo Foodology (país completo) para la vista Todos los Ops */
 function companyWide(){
