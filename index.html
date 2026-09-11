@@ -852,12 +852,14 @@ function opsPriority(){
   var defs=[['In Full',ifCardObj],['Turbo',turboCardObj],['Cancelaciones',cancelCardObj],
     ['GAP Bono',gapBonoCardObj],['FoodCost',fcCardObj],['Accuracy',accCardObj],
     ['Gestión Op.',goCardObj],['Rotación',rotCardObj],['Capacitaciones',capCardObj],['Basics',basicsCardObj]];
-  kitchens.forEach(function(kn){ selKitchen=kn; var red=[],amb=[];
-    defs.forEach(function(d){ var o; try{o=d[1]();}catch(e){o=null;} if(!o)return; var st=o.st;
-      if(st==='r'||st==='p')red.push(d[0]); else if(st==='a')amb.push(d[0]); });
-    rows.push({kn:kn,red:red,amb:amb,score:red.length*10+amb.length}); });
+  var IMP={'In Full':1,'Turbo':1,'Gestión Op.':1,'Capacitaciones':1}; /* métricas diarias/clave: pesan más al priorizar */
+  kitchens.forEach(function(kn){ selKitchen=kn; var red=[],amb=[],sc=0;
+    defs.forEach(function(d){ var o; try{o=d[1]();}catch(e){o=null;} if(!o)return; var st=o.st,imp=IMP[d[0]];
+      if(st==='r'||st==='p'){red.push(d[0]); sc+=imp?100:10;} else if(st==='a'){amb.push(d[0]); sc+=imp?18:2;} });
+    var impRed=red.filter(function(n){return IMP[n];}).length;
+    rows.push({kn:kn,red:red,amb:amb,score:sc,impRed:impRed}); });
   selKitchen=save;
-  rows.sort(function(a,b){return b.score-a.score||b.red.length-a.red.length;});
+  rows.sort(function(a,b){return b.score-a.score||b.impRed-a.impRed||b.red.length-a.red.length;});
   var fail=rows.filter(function(r){return r.score>0;});
   if(!fail.length)return '<div class="card mt" style="background:#eef7f0;border:1px solid #2f9e5f22;padding:10px 14px;font-size:12px;color:#1c7a45">✅ Todas las cocinas de '+ops+' cumplen los indicadores esta semana.</div>';
   function chip(n,r){return '<span style="display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:20px;margin:1px 2px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
@@ -869,8 +871,8 @@ function opsPriority(){
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:16px;height:16px;border-radius:50%;background:'+col+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px">'+(i+1)+'</span>'+
       '<b style="font-size:12px;color:var(--primary)">'+r.kn+'</b><span style="font-size:8.5px;font-weight:700;color:'+col+';margin-left:auto;text-transform:uppercase">'+(crit?'Crítica':'Atención')+'</span></div>'+
       '<div>'+chips(r)+'</div></div>';}).join('');
-  var restHtml=rest.length?'<div style="margin-top:5px;border-top:1px dashed #d9e0ea;padding-top:4px">'+rest.map(function(r){
-    return '<div style="font-size:10px;margin:1px 0;color:var(--slate);cursor:pointer" onclick="'+go(r.kn)+'"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> '+chips(r)+'</div>';}).join('')+'</div>':'';
+  var restHtml=rest.length?'<div style="display:flex;flex-wrap:wrap;gap:3px 18px;margin-top:5px;border-top:1px dashed #d9e0ea;padding-top:5px">'+rest.map(function(r){
+    return '<span style="font-size:10px;color:var(--slate);cursor:pointer;white-space:nowrap" onclick="'+go(r.kn)+'"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> '+chips(r)+'</span>';}).join('')+'</div>':'';
   var okc=rows.length-fail.length, okNote=okc>0?'<span style="font-size:9.5px;color:#1c7a45;margin-left:8px">✅ '+okc+' cumplen todo</span>':'';
   return '<div class="card mt" style="padding:7px 11px">'+
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="font-size:12px">⚠️</span><h3 style="font-size:11.5px;margin:0">Prioriza · Ops: '+ops+'</h3>'+okNote+'<span style="font-size:9px;color:var(--muted);margin-left:auto">orden por indicadores en rojo</span></div>'+
