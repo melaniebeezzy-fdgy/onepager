@@ -844,8 +844,8 @@ if(typeof KPI_CLOSE!=='undefined'){KPI_CLOSE['Gestión Operativa']='2026-08-30';
 (function(){if(typeof KPI_CLOSE==='undefined')return;var D={'In Full':'2026-08-29','Turbo (RTWT)':'2026-08-29','Cancelaciones':'2026-08-29','Accuracy':'2026-08-17','FoodCost':'2026-08-17','GAP Bono':'2026-08-17','Rotación':'2026-08-30','Gestión Operativa':'2026-08-23'};for(var k in D){if(!(k in KPI_CLOSE))KPI_CLOSE[k]=D[k];}})();
 /* Priorización por Ops: qué cocina revisar primero según indicadores que no cumple */
 function opsPriority(){
-  var ops=(selOps!=='Todos')?selOps:((curOps()[selKitchen])||'');
-  if(!ops)return '';
+  if(selOps==='Todos')return '';
+  var ops=selOps;
   var mp=curOps(); var kitchens=Object.keys(curIF()).filter(function(k){return mp[k]===ops;});
   if(!kitchens||kitchens.length<=1)return '';
   var save=selKitchen, rows=[];
