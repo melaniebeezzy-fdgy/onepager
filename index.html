@@ -844,8 +844,10 @@ if(typeof KPI_CLOSE!=='undefined'){KPI_CLOSE['Gestión Operativa']='2026-08-30';
 (function(){if(typeof KPI_CLOSE==='undefined')return;var D={'In Full':'2026-08-29','Turbo (RTWT)':'2026-08-29','Cancelaciones':'2026-08-29','Accuracy':'2026-08-17','FoodCost':'2026-08-17','GAP Bono':'2026-08-17','Rotación':'2026-08-30','Gestión Operativa':'2026-08-23'};for(var k in D){if(!(k in KPI_CLOSE))KPI_CLOSE[k]=D[k];}})();
 /* Priorización por Ops: qué cocina revisar primero según indicadores que no cumple */
 function opsPriority(){
-  if(selOps==='Todos')return '';
-  var kitchens=kitchensFor(); if(!kitchens||kitchens.length<=1)return '';
+  var ops=(selOps!=='Todos')?selOps:((curOps()[selKitchen])||'');
+  if(!ops)return '';
+  var mp=curOps(); var kitchens=Object.keys(curIF()).filter(function(k){return mp[k]===ops;});
+  if(!kitchens||kitchens.length<=1)return '';
   var save=selKitchen, rows=[];
   var defs=[['In Full',ifCardObj],['Turbo',turboCardObj],['Cancelaciones',cancelCardObj],
     ['GAP Bono',gapBonoCardObj],['FoodCost',fcCardObj],['Accuracy',accCardObj],
@@ -857,7 +859,7 @@ function opsPriority(){
   selKitchen=save;
   rows.sort(function(a,b){return b.score-a.score||b.red.length-a.red.length;});
   var fail=rows.filter(function(r){return r.score>0;});
-  if(!fail.length)return '<div class="card mt" style="background:#eef7f0;border:1px solid #2f9e5f22;padding:10px 14px;font-size:12px;color:#1c7a45">✅ Todas las cocinas de '+selOps+' cumplen los indicadores esta semana.</div>';
+  if(!fail.length)return '<div class="card mt" style="background:#eef7f0;border:1px solid #2f9e5f22;padding:10px 14px;font-size:12px;color:#1c7a45">✅ Todas las cocinas de '+ops+' cumplen los indicadores esta semana.</div>';
   function chip(n,r){return '<span style="display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px 3px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
   function chips(x){return x.red.map(function(n){return chip(n,true);}).join('')+x.amb.map(function(n){return chip(n,false);}).join('');}
   function go(kn){return "selKitchen='"+kn.replace(/'/g,"\\'")+"';if(typeof populateSel==='function')populateSel();render()";}
@@ -871,7 +873,7 @@ function opsPriority(){
     return '<div style="font-size:11.5px;margin:3px 0;color:var(--slate);cursor:pointer" onclick="'+go(r.kn)+'"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> — '+chips(r)+'</div>';}).join('')+'</div>':'';
   var okc=rows.length-fail.length, okNote=okc>0?'<div style="font-size:11px;color:#1c7a45;margin-top:7px">✅ '+okc+' cocina'+(okc>1?'s':'')+' cumplen todo.</div>':'';
   return '<div class="card mt" style="padding:12px 14px">'+
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">⚠️</span><h3 style="font-size:13px;margin:0">Prioriza estas cocinas · Ops: '+selOps+'</h3><span style="font-size:10px;color:var(--muted);margin-left:auto">ordenado por indicadores en rojo</span></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">⚠️</span><h3 style="font-size:13px;margin:0">Prioriza estas cocinas · Ops: '+ops+'</h3><span style="font-size:10px;color:var(--muted);margin-left:auto">ordenado por indicadores en rojo</span></div>'+
     '<div style="display:flex;gap:10px;flex-wrap:wrap">'+foco+'</div>'+restHtml+okNote+'</div>';
 }
 builders.resumen=function(){
