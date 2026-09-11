@@ -886,17 +886,22 @@ function allOpsSummary(){
   function section(title,list,sub){return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">'+title+(sub?' <span style="font-size:10px;color:var(--muted);font-weight:600">· '+sub+'</span>':'')+'</h1></div></div><div class="grid g3">'+list.map(opsCard).join('')+'</div>';}
   var cmap=CITY_OPS[selCountry];
   if(!cmap) return section('Resumen por Ops', names.sort());
-  var out='', used={};
-  Object.keys(cmap).forEach(function(city){
-    var list=cmap[city].filter(function(o){return byops[o];}); list.forEach(function(o){used[o]=1;});
-    if(!list.length)return;
+  var used={};
+  function column(city,list){
     var allk=[]; list.forEach(function(o){allk=allk.concat(byops[o]);});
     var cc=_rankKitchens(allk).filter(function(r){return r.red.length>4;}).length;
-    out+=section('🏙️ City · '+city, list, allk.length+' cocinas'+(cc?' · '+cc+' críticas':''));
-  });
+    var hdr='<div style="margin-bottom:6px;border-bottom:2px solid #24476822;padding-bottom:4px"><div style="font-size:13px;font-weight:800;color:var(--primary)">🏙️ '+city+'</div><div style="font-size:9.5px;color:var(--muted)">'+allk.length+' cocinas'+(cc?' · <span style="color:#d64545;font-weight:700">'+cc+' críticas</span>':'')+'</div></div>';
+    var cards=list.map(function(o){return '<div style="margin-bottom:8px">'+opsCard(o)+'</div>';}).join('');
+    return '<div style="flex:1 1 240px;min-width:230px">'+hdr+cards+'</div>';
+  }
+  var cols=Object.keys(cmap).map(function(city){
+    var list=cmap[city].filter(function(o){return byops[o];}); list.forEach(function(o){used[o]=1;});
+    return list.length?column(city,list):'';
+  }).filter(Boolean);
   var rest=names.filter(function(o){return !used[o];}).sort();
-  if(rest.length) out+=section('🏙️ City · Otros', rest);
-  return out;
+  if(rest.length) cols.push(column('Otros',rest));
+  return '<div class="page-head mt" style="border:none;margin-bottom:6px"><div><h1 style="font-size:14px">Resumen por City</h1></div></div>'+
+    '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+cols.join('')+'</div>';
 }
 /* Resumen general de todo Foodology (país completo) para la vista Todos los Ops */
 function companyWide(){
