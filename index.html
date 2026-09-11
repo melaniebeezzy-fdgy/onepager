@@ -860,21 +860,21 @@ function opsPriority(){
   rows.sort(function(a,b){return b.score-a.score||b.red.length-a.red.length;});
   var fail=rows.filter(function(r){return r.score>0;});
   if(!fail.length)return '<div class="card mt" style="background:#eef7f0;border:1px solid #2f9e5f22;padding:10px 14px;font-size:12px;color:#1c7a45">✅ Todas las cocinas de '+ops+' cumplen los indicadores esta semana.</div>';
-  function chip(n,r){return '<span style="display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px 3px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
+  function chip(n,r){return '<span style="display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:20px;margin:1px 2px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
   function chips(x){return x.red.map(function(n){return chip(n,true);}).join('')+x.amb.map(function(n){return chip(n,false);}).join('');}
   function go(kn){return "selKitchen='"+kn.replace(/'/g,"\\'")+"';if(typeof populateSel==='function')populateSel();render()";}
   var focus=fail.slice(0,2), rest=fail.slice(2);
   var foco=focus.map(function(r,i){var crit=r.red.length>0,col=crit?'#d64545':'#e2a52a';
-    return '<div style="flex:1;min-width:240px;background:'+(crit?'#fdeceb':'#fdf6e8')+';border-radius:10px;padding:10px 12px;cursor:pointer" onclick="'+go(r.kn)+'">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="width:22px;height:22px;border-radius:50%;background:'+col+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">'+(i+1)+'</span>'+
-      '<b style="font-size:14px;color:var(--primary)">'+r.kn+'</b><span class="pill" style="background:'+col+'22;color:'+col+';margin-left:auto">'+(crit?'Crítica':'Atención')+'</span></div>'+
-      '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600;margin-bottom:1px">No cumple</div><div>'+chips(r)+'</div></div>';}).join('');
-  var restHtml=rest.length?'<div style="margin-top:8px;border-top:1px dashed #d9e0ea;padding-top:7px">'+rest.map(function(r){
-    return '<div style="font-size:11.5px;margin:3px 0;color:var(--slate);cursor:pointer" onclick="'+go(r.kn)+'"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> — '+chips(r)+'</div>';}).join('')+'</div>':'';
-  var okc=rows.length-fail.length, okNote=okc>0?'<div style="font-size:11px;color:#1c7a45;margin-top:7px">✅ '+okc+' cocina'+(okc>1?'s':'')+' cumplen todo.</div>':'';
-  return '<div class="card mt" style="padding:12px 14px">'+
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">⚠️</span><h3 style="font-size:13px;margin:0">Prioriza estas cocinas · Ops: '+ops+'</h3><span style="font-size:10px;color:var(--muted);margin-left:auto">ordenado por indicadores en rojo</span></div>'+
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">'+foco+'</div>'+restHtml+okNote+'</div>';
+    return '<div style="flex:1;min-width:210px;background:'+(crit?'#fdeceb':'#fdf6e8')+';border-radius:8px;padding:5px 8px;cursor:pointer" onclick="'+go(r.kn)+'">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:16px;height:16px;border-radius:50%;background:'+col+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px">'+(i+1)+'</span>'+
+      '<b style="font-size:12px;color:var(--primary)">'+r.kn+'</b><span style="font-size:8.5px;font-weight:700;color:'+col+';margin-left:auto;text-transform:uppercase">'+(crit?'Crítica':'Atención')+'</span></div>'+
+      '<div>'+chips(r)+'</div></div>';}).join('');
+  var restHtml=rest.length?'<div style="margin-top:5px;border-top:1px dashed #d9e0ea;padding-top:4px">'+rest.map(function(r){
+    return '<div style="font-size:10px;margin:1px 0;color:var(--slate);cursor:pointer" onclick="'+go(r.kn)+'"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> '+chips(r)+'</div>';}).join('')+'</div>':'';
+  var okc=rows.length-fail.length, okNote=okc>0?'<span style="font-size:9.5px;color:#1c7a45;margin-left:8px">✅ '+okc+' cumplen todo</span>':'';
+  return '<div class="card mt" style="padding:7px 11px">'+
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="font-size:12px">⚠️</span><h3 style="font-size:11.5px;margin:0">Prioriza · Ops: '+ops+'</h3>'+okNote+'<span style="font-size:9px;color:var(--muted);margin-left:auto">orden por indicadores en rojo</span></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+foco+'</div>'+restHtml+'</div>';
 }
 builders.resumen=function(){
   var isCoc=true;
