@@ -865,8 +865,8 @@ function allOpsSummary(){
   function chip(n,r){return '<span style="display:inline-block;font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:20px;margin:2px 3px 0 0;background:'+(r?'#fdeceb':'#fdf6e8')+';color:'+(r?'#d64545':'#b9821a')+'">'+n+'</span>';}
   var cards=names.map(function(o){
     var rows=_rankKitchens(byops[o]);
-    var crit=rows.filter(function(r){return r.red.length>0;}).length;
-    var aten=rows.filter(function(r){return r.red.length===0&&r.amb.length>0;}).length;
+    var crit=rows.filter(function(r){return r.red.length>4;}).length;
+    var aten=rows.filter(function(r){return r.red.length<=4&&r.score>0;}).length;
     var fail=rows.filter(function(r){return r.score>0;}).slice(0,3);
     var col=crit>0?'#d64545':(aten>0?'#e2a52a':'#2f9e5f');
     var lines=fail.length?fail.map(function(r){return '<div style="font-size:11px;margin-top:3px"><span style="color:'+(r.red.length?'#d64545':'#e2a52a')+';font-weight:700">•</span> <b>'+r.kn+'</b> '+r.red.map(function(n){return chip(n,true);}).join('')+r.amb.slice(0,Math.max(0,4-r.red.length)).map(function(n){return chip(n,false);}).join('')+'</div>';}).join(''):'<div style="font-size:11px;margin-top:3px;color:#1c7a45">✅ Todo en meta</div>';
@@ -882,8 +882,8 @@ function allOpsSummary(){
 function companyWide(){
   var ks=Object.keys(curIF()); if(!ks.length)return '';
   var rows=_rankKitchens(ks);
-  var crit=rows.filter(function(r){return r.red.length>0;}).length;
-  var aten=rows.filter(function(r){return r.red.length===0&&r.amb.length>0;}).length;
+  var crit=rows.filter(function(r){return r.red.length>4;}).length;
+  var aten=rows.filter(function(r){return r.red.length<=4&&r.score>0;}).length;
   var ok=rows.length-crit-aten;
   var byKpi={}; rows.forEach(function(r){r.red.forEach(function(n){byKpi[n]=(byKpi[n]||0)+1;});});
   var top=Object.keys(byKpi).sort(function(a,b){return byKpi[b]-byKpi[a];});
@@ -921,7 +921,7 @@ function opsPriority(){
   function chips(x){return x.red.map(function(n){return chip(n,true);}).join('')+x.amb.map(function(n){return chip(n,false);}).join('');}
   function go(kn){return "selKitchen='"+kn.replace(/'/g,"\\'")+"';if(typeof populateSel==='function')populateSel();render()";}
   var focus=fail.slice(0,2), rest=fail.slice(2);
-  var foco=focus.map(function(r,i){var crit=r.red.length>0,col=crit?'#d64545':'#e2a52a';
+  var foco=focus.map(function(r,i){var crit=r.red.length>4,col=crit?'#d64545':'#e2a52a';
     return '<div style="flex:1;min-width:210px;background:'+(crit?'#fdeceb':'#fdf6e8')+';border-radius:8px;padding:5px 8px;cursor:pointer" onclick="'+go(r.kn)+'">'+
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:16px;height:16px;border-radius:50%;background:'+col+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px">'+(i+1)+'</span>'+
       '<b style="font-size:12px;color:var(--primary)">'+r.kn+'</b><span style="font-size:8.5px;font-weight:700;color:'+col+';margin-left:auto;text-transform:uppercase">'+(crit?'Crítica':'Atención')+'</span></div>'+
