@@ -782,8 +782,12 @@ var WEEK_LABEL={6:'dom–sáb',0:'lun–dom',1:'mar–lun'};
 var DAILY_TOGGLE={'In Full':1,'Turbo (RTWT)':1,'Cancelaciones':1};
 function _pd(s){var p=String(s).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
 function _lastClose(cw,ref){var d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate());var diff=(d.getDay()-cw+7)%7;d.setDate(d.getDate()-diff);return d;}
-function _expClose(cw){var t=new Date();var y=new Date(t.getFullYear(),t.getMonth(),t.getDate()-1);return _lastClose(cw,y);}
-function isStale(name){if(!(name in WEEK_DEF))return false;if(DAILY_TOGGLE[name]&&typeof weekMode!=='undefined'&&weekMode==='curso')return false;var cd=KPI_CLOSE[name];if(!cd)return false;return _pd(cd).getTime()<_expClose(WEEK_DEF[name]).getTime();}
+/* Referencia "as-of" = fecha del cierre más reciente cargado (no el reloj real), acotada a ayer.
+   Así el dashboard no marca Pendiente solo porque avanzó el calendario; solo si un KPI queda
+   rezagado > 1 semana respecto a la data más fresca ya cargada. */
+function _asof(){var m=0;for(var k in KPI_CLOSE){if(!KPI_CLOSE[k])continue;var t=_pd(KPI_CLOSE[k]).getTime();if(t>m)m=t;}var ry=Date.now()-864e5;return new Date(m?Math.min(m,ry):ry);}
+function _expClose(cw){var r=_asof();return _lastClose(cw,new Date(r.getFullYear(),r.getMonth(),r.getDate()));}
+function isStale(name){if(!(name in WEEK_DEF))return false;if(DAILY_TOGGLE[name]&&typeof weekMode!=='undefined'&&weekMode==='curso')return false;var cd=KPI_CLOSE[name];if(!cd)return false;return _pd(cd).getTime()<_expClose(WEEK_DEF[name]).getTime()-6*864e5;}
 function sumCard(sec,ic,name,value,detail,st,badge,dl,extra){
   if(isStale(name)){value='—';badge='Pendiente';st='n';dl='';extra='';detail='Pendiente de actualización · semana '+(WEEK_LABEL[WEEK_DEF[name]]||'');}
   var sub=detail||'';
