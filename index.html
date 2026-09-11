@@ -617,13 +617,14 @@ function setWeekMode(m){weekMode=m;render();}
 function populateSel(){
   populateOps();
   var sel=document.getElementById('scopeSel');var kid=curKID();
+  if(selOps==='Todos'){sel.innerHTML='<option value="" selected>— Todas las cocinas —</option>';return;}
   var ks=kitchensFor().slice().sort(function(a,b){return (kid[a]||a).localeCompare(kid[b]||b);});
   sel.innerHTML=ks.map(function(n){return '<option value="'+n+'" '+(n===selKitchen?'selected':'')+'>'+(kid[n]||n)+'</option>';}).join('');
 }
 function go(s){var el=document.getElementById('sec-'+s);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 function render(){
   applyWeekMode();
-  document.getElementById('crumb').textContent='· Cocina: '+((typeof curKID==='function'&&curKID()[selKitchen])||selKitchen);
+  document.getElementById('crumb').textContent=(selOps==='Todos')?'':('· Cocina: '+((typeof curKID==='function'&&curKID()[selKitchen])||selKitchen));
   var html=order.map(function(s){return '<section id="sec-'+s+'">'+(builders[s]||builders._ph)(s)+'</section>';}).join('');
   document.getElementById('main').innerHTML=html;
   initScrollSpy();
