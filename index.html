@@ -944,8 +944,7 @@ builders.resumen=function(){
     '<div><h5 style="margin-bottom:3px">🟠 Monitorea · viene cayendo</h5><p><b>Turbo</b> ▲0,35 min, <b>FoodCost</b> ▲0,91 pp, <b>Accuracy</b> ▼0,30 pp y <b>Cancelaciones</b> ▲48 vs sem. anterior.</p></div>'+
     '<div><h5 style="margin-bottom:3px">🟢 Vas bien</h5><p><b>In Full</b> (97,8%), <b>Gestión Operativa</b> (96%) y <b>Rotación</b> (120% ≤ meta) cumplen y vienen mejorando.</p></div>'+
     '</div></div>';
-  return head('Resumen ejecutivo','','')+
-    '<div class="paistoggle" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap">'+
+  return '<div class="paistoggle" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-top:0">'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+['COL','MEX','PER'].map(function(c){return '<button class="'+(c===selCountry?'active':'')+'" onclick="setCountry(\''+c+'\')">'+({COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'}[c])+'</button>';}).join('')+'</div>'+
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'+
         '<div style="display:flex;gap:6px">'+[['cerrada','📅 Semana cerrada'],['curso','⏳ Semana en curso']].map(function(o){return '<button class="'+(o[0]===weekMode?'active':'')+'" style="padding:6px 12px;font-size:11.5px" onclick="setWeekMode(\''+o[0]+'\')">'+o[1]+'</button>';}).join('')+'</div>'+
