@@ -1008,6 +1008,43 @@ function countryPicker(){
     cs.map(function(c){return '<button onclick="setCountry(\''+c[0]+'\')" style="font-size:16px;font-weight:800;padding:18px 32px;border-radius:12px;border:1px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer">'+c[1]+'</button>';}).join('')+
     '</div></div>';
 }
+function countryGroups(){
+  var K='§PAIS', save=selKitchen;
+  function _avg(a){return a.length?a.reduce(function(s,x){return s+x;},0)/a.length:0;}
+  function _sum(a){return a.reduce(function(s,x){return s+x;},0);}
+  function vals(map,f){var o=[];for(var k in map){if(k===K)continue;var d=map[k];var v=(f?(d?d[f]:undefined):d);if(typeof v==='number'&&!isNaN(v))o.push(v);}return o;}
+  var IF=curIF(); IF[K]={c:_avg(vals(IF,'c')),p:_avg(vals(IF,'p')),q:_sum(vals(IF,'q'))};
+  var TB=curTurbo(); var ov=(selCountry==='COL')?'over6':'over3'; if(TB){TB[K]={c:_avg(vals(TB,'c')),p:_avg(vals(TB,'p')),rango:Math.round(_avg(vals(TB,'rango')))};TB[K][ov]=_avg(vals(TB,ov));}
+  var CN=curCanc(); if(CN){CN[K]={c:Math.round(_sum(vals(CN,'c'))),p:Math.round(_sum(vals(CN,'p'))),u:Math.round(_sum(vals(CN,'u'))),pu:Math.round(_sum(vals(CN,'pu')))};}
+  var FC=curFCW(); FC[K]={fc:_avg(vals(FC,'fc')),fp:_avg(vals(FC,'fp'))};
+  var GO=curGO(); GO[K]={rto:Math.round(_avg(vals(GO,'rto'))),ldc:Math.round(_avg(vals(GO,'ldc'))),aseo:Math.round(_avg(vals(GO,'aseo'))),reu:null,go:Math.round(_avg(vals(GO,'go')))};
+  var AC=curAcc(); AC[K]=_avg(vals(AC)); var ACP=curAccP(); ACP[K]=_avg(vals(ACP));
+  var RT=curRot(); RT[K]={r:_avg(vals(RT,'r')),t:Math.round(_avg(vals(RT,'t')))}; var RTP=curRotP(); RTP[K]=_avg(vals(RTP)); var RCB=curRotCob(); RCB[K]=_avg(vals(RCB));
+  var GB=curGapB(); GB[K]={b:_avg(vals(GB,'b')),bp:_avg(vals(GB,'bp')),bm:_avg(vals(GB,'bm')),om:_avg(vals(GB,'om'))};
+  var GC=curGapCmp(); GC[K]={ba:_avg(vals(GC,'ba')),me:_avg(vals(GC,'me')),fr:_avg(vals(GC,'fr')),aj:_avg(vals(GC,'aj')),re:_avg(vals(GC,'re'))};
+  var TP=curTipo(); var _tp=TP[K]; TP[K]='B';
+  var BS=curBasics(); BS[K]={b:Math.round(_avg(vals(BS,'b'))),proy:Math.round(_avg(vals(BS,'proy'))),planes:_sum(vals(BS,'planes'))};
+  var CP=curCap(); CP[K]=Math.round(_avg(vals(CP)));
+  selKitchen=K;
+  var _if=ifCardObj()||{st:'g',value:'—',badge:'—',dl:'',extra:''};
+  var cIF=sumCard('if','✅','In Full',_if.value,'On Time In Full · Meta ≥ 97,5%',_if.st,_if.badge,_if.dl,_if.extra);
+  var _tb=turboCardObj(); var cTurbo=sumCard('turbo','⚡','Turbo (RTWT)',_tb.value,'RTWT · Meta ≤ 2 min',_tb.st,_tb.badge,_tb.dl,_tb.extra);
+  var _cn=cancelCardObj(); var cCancel=sumCard('can','🚫','Cancelaciones',_cn.value,'Órdenes canceladas · total país',_cn.st,_cn.badge,_cn.dl,_cn.extra);
+  var _fc=fcCardObj(); var cFood=sumCard('gap','🧾','FoodCost',_fc.value,'Meta ≤ '+f1(FC_TARGET[selCountry])+'%',_fc.st,_fc.badge,_fc.dl,_fc.extra);
+  var _gp=gapBonoCardObj(); var cGap=sumCard('gap','📉','GAP Bono',_gp.value,'Promedio país',_gp.st,_gp.badge,_gp.dl,_gp.extra);
+  var _ac=accCardObj(); var cAcc=sumCard('acc','🎯','Accuracy',_ac.value,'Exactitud de inventario · Meta ≥ 70%',_ac.st,_ac.badge,_ac.dl,_ac.extra);
+  var _go=goCardObj(); var cGO=sumCard('go','🗂️','Gestión Operativa',_go.value,'Meta ≥ 95% · RTO + Libro + Aseo',_go.st,_go.badge,_go.dl,_go.extra);
+  var _rot=rotCardObj(); var cRot=sumCard('rot','🔄','Rotación',_rot.value,'Rotación anualizada',_rot.st,_rot.badge,_rot.dl,_rot.extra);
+  var _cp=capCardObj(); var cCap=sumCard('cap','🎓','Capacitaciones',_cp.value,'Avance de módulos · Meta 90%',_cp.st,_cp.badge,_cp.dl,_cp.extra);
+  var _bs=basicsCardObj(); var cBas=sumCard('bas','📋','Basics',_bs.value,'Básicos operativos · Meta > '+(BASICS_THR[selCountry]||95)+'%',_bs.st,_bs.badge,_bs.dl,_bs.extra);
+  selKitchen=save;
+  delete IF[K];delete FC[K];delete GO[K];delete AC[K];delete ACP[K];delete RT[K];delete RTP[K];delete RCB[K];delete GB[K];delete GC[K];delete BS[K];delete CP[K];
+  if(TB)delete TB[K]; if(CN)delete CN[K];
+  if(_tp===undefined)delete TP[K];else TP[K]=_tp;
+  function grp(t,arr){return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">'+t+'</h1></div></div><div class="grid g'+(arr.length>=4?4:3)+'">'+arr.join('')+'</div>';}
+  var hasTB=(_tb.badge!=='Sin datos');
+  return grp('Pedidos',[cIF].concat(hasTB?[cTurbo]:[]).concat([cCancel]))+grp('Control de inventarios',[cFood,cGap,cAcc])+grp('Salud de la cocina',[cGO,cRot,cCap,cBas]);
+}
 builders.resumen=function(){
   if(appView==='glosario') return centralHub();
   if(!countryChosen) return countryPicker();
@@ -1080,7 +1117,7 @@ builders.resumen=function(){
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+['COL','MEX','PER'].map(function(c){return '<button class="'+(c===selCountry?'active':'')+'" onclick="setCountry(\''+c+'\')">'+({COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'}[c])+'</button>';}).join('')+'</div>'+
       '<div style="font-size:11px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px">📅 Semana cerrada</div>'+
     '</div>';
-  if(selOps==='Todos') return toggles+companyWide();
+  if(selOps==='Todos') return toggles+companyWide()+countryGroups();
   return toggles+tipoCard+opsPriority()+groups;
 };
 
