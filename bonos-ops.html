@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foodology | Bono Ops Managers</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--navy:#12263f;--ink:#1b2a3d;--indigo:#5457d6;--muted:#6b7a90;--line:#e6ebf2;--g:#1c9b5e;--gb:#e7f6ee;--r:#d64545;--rb:#fdeceb;--a:#c98a12;--ab:#fff6e6;--bg:#f4f6fa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .brand{font-size:16px;font-weight:800}
+header .sub{font-size:12px;opacity:.8}
+header .sp{flex:1}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 18px 50px}
+.tabs{display:flex;gap:8px;margin:6px 0 14px}
+.tabs button{border:1px solid #cdd7e3;background:#fff;color:var(--navy);font-weight:700;padding:9px 18px;border-radius:10px;cursor:pointer;font-size:13px}
+.tabs button.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.meta{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+.card .val{font-size:24px;font-weight:800;color:var(--navy);margin-top:3px;line-height:1}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.bar h2{font-size:15px;margin:0;color:var(--navy)}
+.btn{background:var(--g);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+.tablewrap{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:820px;font-size:12.5px}
+th,td{padding:9px 11px;text-align:left;border-bottom:1px solid #eef2f7;white-space:nowrap}
+th{background:#f7f9fc;color:var(--navy);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+td.num,th.num{text-align:right}
+.sc{display:inline-block;min-width:42px;text-align:center;padding:2px 7px;border-radius:7px;font-weight:700;font-size:11.5px}
+tr.tot td{font-weight:800;background:#f4f7fb;border-top:2px solid #d7e0ea}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">fdgy · Bono Trimestral — Ops Managers</div>
+  <div class="sub" id="hsub"></div>
+  <div class="sp"></div>
+  <a href="/bonos" target="_top" style="color:#9fc4e8;font-size:12px;text-decoration:none">← Bonos</a>
+</header>
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div class="meta">
+    Scorecard por Ops Manager sobre el <b>promedio de sus cocinas</b>. Pesos: <b>IF 30% · GAP 25% · Turbo 25% · Rotación 20%</b> (WOW solo cocinas nuevas). GAP con gate de Accuracy ≥70%.<br>
+    Puntaje por cocina: agresivo = 1,00 · moderado = 0,80 · no cumple = 0. Pago octubre = Logro × (bono máx/cocina ÷ 3) × nº cocinas. Fuente: IF/Turbo/Accuracy warehouse · GAP sheet Excellence · Rotación People.
+  </div>
+  <div class="cards" id="cards"></div>
+  <div class="bar"><h2 id="ttl"></h2><button class="btn" onclick="exportX()">⬇️ Descargar Excel</button></div>
+  <div class="tablewrap"><table id="tbl"></table></div>
+</div>
+<script id="bono-preload" type="application/json">{"mes": "2026-10", "w": {"IF": 30, "GAP": 25, "Turbo": 25, "Rotacion": 20}, "data": {"COL": [{"ops": "Alvaro Pulgarin", "nc": 1, "if": 0.8, "gap": 1.0, "turbo": 0.8, "rot": 0.0, "logro": 69, "pago": 126500, "monto": 550000}, {"ops": "Daniel Beltran", "nc": 1, "if": 0.0, "gap": 0.0, "turbo": 0.0, "rot": 0.0, "logro": 0, "pago": 0, "monto": 550000}, {"ops": "Jose Rodriguez", "nc": 3, "if": 0.6, "gap": 0.87, "turbo": 1.0, "rot": 1.0, "logro": 85, "pago": 465667, "monto": 550000}, {"ops": "Juan Pablo Gomez", "nc": 6, "if": 0.27, "gap": 0.27, "turbo": 0.93, "rot": 0.33, "logro": 45, "pago": 491333, "monto": 550000}, {"ops": "Kevin Ramirez", "nc": 5, "if": 1.0, "gap": 1.0, "turbo": 0.0, "rot": 1.0, "logro": 75, "pago": 687500, "monto": 550000}, {"ops": "Laura Hernandez", "nc": 5, "if": 0.6, "gap": 0.8, "turbo": 0.65, "rot": 0.6, "logro": 66, "pago": 607292, "monto": 550000}, {"ops": "Leidy Pinzon", "nc": 5, "if": 0.2, "gap": 0.8, "turbo": 0.65, "rot": 0.2, "logro": 46, "pago": 423958, "monto": 550000}, {"ops": "Sara Sierra", "nc": 1, "if": 0.8, "gap": 0.8, "turbo": 0.0, "rot": 0.0, "logro": 44, "pago": 80667, "monto": 550000}, {"ops": "Sebastian Bernal", "nc": 2, "if": 0.5, "gap": 0.8, "turbo": 0.5, "rot": 0.0, "logro": 48, "pago": 174167, "monto": 550000}, {"ops": "Ulises Torres", "nc": 3, "if": 0.27, "gap": 0.27, "turbo": 1.0, "rot": 0.33, "logro": 46, "pago": 254833, "monto": 550000}], "MEX": [{"ops": "Carlos Garcia", "nc": 9, "if": 0.84, "gap": 0.82, "turbo": 0.13, "rot": 0.56, "logro": 60, "pago": 3620, "monto": 2000}, {"ops": "Claudia Valdez", "nc": 2, "if": 0.5, "gap": 0.8, "turbo": 0.4, "rot": 1.0, "logro": 65, "pago": 2600, "monto": 6000}, {"ops": "Guillermo Villalva", "nc": 7, "if": 0.8, "gap": 0.37, "turbo": 0.0, "rot": 0.71, "logro": 48, "pago": 2220, "monto": 2000}, {"ops": "Paulina Lima", "nc": 5, "if": 0.6, "gap": 0.16, "turbo": 0.0, "rot": 0.75, "logro": 37, "pago": 1233, "monto": 2000}, {"ops": "Selene Cabrera", "nc": 7, "if": 0.57, "gap": 0.71, "turbo": 0.16, "rot": 0.0, "logro": 39, "pago": 1820, "monto": 2000}, {"ops": "Sergio Torres", "nc": 9, "if": 0.89, "gap": 0.62, "turbo": 0.16, "rot": 0.67, "logro": 60, "pago": 3573, "monto": 2000}]}}</script>
+<script>
+var PL=JSON.parse(document.getElementById('bono-preload').textContent);
+var CUR={COL:'$',MEX:'$'};var LOC={COL:'es-CO',MEX:'es-MX'};
+var NAME={COL:'🇨🇴 Colombia',MEX:'🇲🇽 México'};
+var EMB=new URLSearchParams(location.search).get('c');
+var sel=(EMB&&PL.data[EMB])?EMB:'COL';
+function money(c,v){return CUR[c]+(v||0).toLocaleString(LOC[c]);}
+function sc(v){var p=Math.round(v*100);var cls=v>=0.8?['var(--gb)','var(--g)']:(v>=0.5?['var(--ab)','var(--a)']:['var(--rb)','var(--r)']);return '<span class="sc" style="background:'+cls[0]+';color:'+cls[1]+'">'+p+'%</span>';}
+document.getElementById('hsub').textContent='Mes: '+PL.mes;
+function tabs(){if(EMB){document.getElementById('tabs').style.display='none';return;}document.getElementById('tabs').innerHTML=['COL','MEX'].map(function(c){
+  return '<button class="'+(c===sel?'active':'')+'" onclick="pick(\''+c+'\')">'+NAME[c]+' ('+PL.data[c].length+')</button>';}).join('');}
+function pick(c){sel=c;render();}
+function render(){
+  tabs();
+  var rows=PL.data[sel].slice().sort(function(a,b){return b.pago-a.pago;});
+  var tot=rows.reduce(function(s,p){return s+p.pago;},0);
+  var avgLog=rows.length?Math.round(rows.reduce(function(s,p){return s+p.logro;},0)/rows.length):0;
+  document.getElementById('cards').innerHTML=[
+    ['Ops Managers',rows.length],['Logro promedio',avgLog+'%'],['Total a pagar',money(sel,tot)]
+  ].map(function(x){return '<div class="card"><div class="lbl">'+x[0]+'</div><div class="val">'+x[1]+'</div></div>';}).join('');
+  document.getElementById('ttl').textContent='Scorecard — '+NAME[sel];
+  var head='<thead><tr><th>Ops Manager</th><th class="num">Cocinas</th><th class="num">IF 30%</th><th class="num">GAP 25%</th><th class="num">Turbo 25%</th><th class="num">Rotación 20%</th><th class="num">Logro</th><th class="num">Pago oct</th></tr></thead>';
+  var body=rows.map(function(p){
+    return '<tr><td><b>'+p.ops+'</b></td><td class="num">'+p.nc+'</td>'+
+      '<td class="num">'+sc(p['if'])+'</td><td class="num">'+sc(p.gap)+'</td><td class="num">'+sc(p.turbo)+'</td><td class="num">'+sc(p.rot)+'</td>'+
+      '<td class="num"><b>'+p.logro+'%</b></td><td class="num"><b>'+money(sel,p.pago)+'</b></td></tr>';
+  }).join('');
+  var trow='<tr class="tot"><td colspan="7">TOTAL '+NAME[sel]+'</td><td class="num">'+money(sel,tot)+'</td></tr>';
+  document.getElementById('tbl').innerHTML=head+'<tbody>'+body+trow+'</tbody>';
+}
+function exportX(){
+  var wb=XLSX.utils.book_new();
+  ['COL','MEX'].forEach(function(c){
+    var aoa=[['Ops Manager','Cocinas','IF (30%)','GAP (25%)','Turbo (25%)','Rotacion (20%)','Logro %','Pago Oct','$/cocina']];
+    PL.data[c].slice().sort(function(a,b){return b.pago-a.pago;}).forEach(function(p){
+      aoa.push([p.ops,p.nc,p['if'],p.gap,p.turbo,p.rot,p.logro,p.pago,p.monto]);});
+    var t=PL.data[c].reduce(function(s,p){return s+p.pago;},0);
+    aoa.push(['TOTAL','','','','','','','',t]);
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),c);
+  });
+  XLSX.writeFile(wb,'Bono_Ops_Managers_'+PL.mes+'.xlsx');
+}
+render();
+</script>
+</body>
+</html>
