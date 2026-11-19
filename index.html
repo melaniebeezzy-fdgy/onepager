@@ -616,7 +616,7 @@ function logout(){document.getElementById('login').classList.remove('hidden');}
 function toggleMenu(){}
 function setMode(m){resMode=m;document.getElementById('vSec').classList.toggle('active',m==='seccion');document.getElementById('vPri').classList.toggle('active',m==='prioridad');render();}
 function setScope(v){selKitchen=v;render();}
-function setCountry(c){countryChosen=true;selCountry=c;selOps='Todos';var ks=Object.keys(curIF()).sort();selKitchen=ks[0];populateSel();render();}
+function setCountry(c){countryChosen=true;selCountry=c;var ops=opsListFor();selOps=(ops.length===1)?ops[0]:'Todos';var ks=kitchensFor();selKitchen=ks[0]||Object.keys(curIF()).sort()[0];populateSel();render();}
 function setWeekMode(m){weekMode=m;render();}
 function populateSel(){
   populateOps();
