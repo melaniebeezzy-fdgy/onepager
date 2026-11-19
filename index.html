@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foodology | One Pager 360°</title>
+<title>Foodology | Central Operativa 360°</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%230d2064%27/%3E%3Ctext%20x%3D%2730%27%20y%3D%2730%27%20font-family%3D%27Verdana%2CGeneva%2Csans-serif%27%20font-size%3D%2719%27%20font-weight%3D%27700%27%20fill%3D%27%23ffffff%27%20text-anchor%3D%27middle%27%3Efdgy%3C/text%3E%3Ccircle%20cx%3D%2754%27%20cy%3D%2730%27%20r%3D%272.4%27%20fill%3D%27%23ef8fb4%27/%3E%3Ctext%20x%3D%2732%27%20y%3D%2750%27%20font-family%3D%27Verdana%2CGeneva%2Csans-serif%27%20font-size%3D%2714%27%20font-weight%3D%27700%27%20fill%3D%27%23ef8fb4%27%20text-anchor%3D%27middle%27%3E360%C2%B0%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -192,7 +192,7 @@ td.num,th.num{text-align:right}
 
 <!-- TOP BAR -->
 <div id="top">
-  <div class="ttl">One pager 360° <span id="crumb"></span></div>
+  <div class="ttl">Central Operativa 360° <span id="crumb"></span></div>
   <div class="spacer"></div>
   <select id="opsSel" class="scopesel" onchange="setOps(this.value)" title="Filtrar por Ops Manager"></select>
   <select id="scopeSel" class="scopesel" onchange="setScope(this.value)"></select>
@@ -956,6 +956,43 @@ function opsPriority(){
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="font-size:12px">⚠️</span><h3 style="font-size:11.5px;margin:0">Prioriza · Ops: '+ops+'</h3>'+okNote+'<span style="font-size:9px;color:var(--muted);margin-left:auto">orden por indicadores en rojo</span></div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+foco+'</div>'+restHtml+'</div>';
 }
+/* ===== Central Operativa · Glosario de links ===== */
+var LINKS=[
+ {r:'In Full (IF)',cat:'Dashboard',d:'% de órdenes entregadas completas y sin problema de calidad (ítem faltante/incorrecto o rating bajo).',f:'Diario · semana dom–sáb',u:'https://if-dashboard-foodology.onrender.com/dashboards/if'},
+ {r:'Turbo (RTWT) · Data Rappi',cat:'Dashboard',d:'Tiempo que el domiciliario espera por la orden (listo → entrega al domiciliario).',f:'Diario · semana lun–dom',u:'https://dashboard-turbology.vercel.app/'},
+ {r:'Turbo (RTWT) · Power BI',cat:'Reporte',d:'RTWT con data interna (Power BI).',f:'Diario · semana lun–dom',u:'https://app.powerbi.com/groups/1ea01bde-00b1-4e70-b1cf-0363dd3548e3/reports/5c3bccb2-51f3-45ea-b2ba-11c1bb6af973/1739120f64b78cda7971?experience=power-bi&language=en-US'},
+ {r:'GAP (Bono / Operativo)',cat:'Reporte',d:'Mide el desperdicio y control de inventario: bajas, mermas, ajustes, frytol y rendimiento.',f:'Semanal · martes a lunes',u:'https://app.powerbi.com/groups/1ea01bde-00b1-4e70-b1cf-0363dd3548e3/reports/418745fb-954d-4591-bd1b-0d5744a984e9/ReportSection?language=es-419&experience=power-bi'},
+ {r:'FoodCost',cat:'Reporte',d:'% del costo de alimentos sobre la venta.',f:'Semanal · martes a lunes',u:'https://app.powerbi.com/groups/1ea01bde-00b1-4e70-b1cf-0363dd3548e3/reports/418745fb-954d-4591-bd1b-0d5744a984e9/ReportSection7f73175f51a7630e04c0?language=es-419&experience=power-bi'},
+ {r:'Accuracy',cat:'Reporte',d:'% de precisión entre el inventario teórico y el conteo real.',f:'Semanal · martes a lunes',u:'https://app.powerbi.com/groups/1ea01bde-00b1-4e70-b1cf-0363dd3548e3/reports/418745fb-954d-4591-bd1b-0d5744a984e9/ReportSectiond239362f557e70f62569?language=es-419&experience=power-bi'},
+ {r:'Basics',cat:'Dashboard',d:'Auditoría de básicos / estándares de cocina.',f:'Según auditoría',u:'https://dashboard-basics-foodies.vercel.app/'},
+ {r:'Gestión Operativa',cat:'Aplicación',d:'Cumplimiento de RTO, Libro de Calidad, Aseo PM y Reunión Ops por cocina.',f:'Semanal · lun–dom',u:'https://kitchen-operations-hub.replit.app/inicio'},
+ {r:'Capacitaciones',cat:'Aplicación',d:'% de cumplimiento de capacitaciones del personal por cocina.',f:'Semanal',u:'https://modulo-capacitaciones.lovable.app/dashboard'},
+ {r:'Avatar · Incidencias',cat:'Aplicación',d:'Incidencias de personal (ausencias, sanciones, etc.); base para el cálculo de bonos.',f:'Continuo',u:'https://avatar.foodology.com.co/module/users/schedule/incidence/approval'},
+ {r:'Excellence · Maestro de KPIs',cat:'Fuente',d:'Google Sheet fuente de Accuracy, FoodCost, GAP y Rotación.',f:'Semanal',u:'https://docs.google.com/spreadsheets/d/1N8dAvZe7czzK2TJkztKj0bJTFMW_sQAeXFNMbEj7pTs/edit?gid=0#gid=0'}
+];
+var CAT_COLOR={'Dashboard':'var(--cyan)','Reporte':'var(--teal)','Aplicación':'var(--mauve)','Fuente':'var(--steel)','Manual':'var(--amber)'};
+function centralHub(){
+  var banner='<div class="card" style="background:var(--primary);color:#fff;margin-bottom:12px"><div style="padding:14px 16px">'+
+    '<div style="font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px">🗂️ Central Operativa 360°</div>'+
+    '<div style="font-size:12.5px;opacity:.85;margin-top:2px">Todo lo que necesitas para gestionar la operación en un solo lugar.</div>'+
+    '</div></div>';
+  var rows=LINKS.map(function(l){
+    var col=CAT_COLOR[l.cat]||'var(--muted)';
+    return '<tr>'+
+      '<td style="font-weight:700;white-space:nowrap">'+l.r+'</td>'+
+      '<td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:'+col+'">'+l.cat+'</span></td>'+
+      '<td style="color:var(--muted)">'+l.d+'</td>'+
+      '<td style="white-space:nowrap">'+l.f+'</td>'+
+      '<td><a href="'+l.u+'" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700;text-decoration:none">Abrir ↗</a></td>'+
+    '</tr>';
+  }).join('');
+  var table='<div class="card pad0"><div style="padding:11px 13px 3px"><h3>📖 Glosario de links</h3>'+
+    '<div class="csub">Recursos, qué miden y cada cuánto se actualizan.</div></div>'+
+    '<div style="padding:0 5px 10px;overflow-x:auto"><table style="min-width:860px"><thead><tr>'+
+    '<th>Recurso</th><th>Categoría</th><th>Qué es / qué mide</th><th>Actualización</th><th>Link</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  return banner+table;
+}
 builders.resumen=function(){
   var isCoc=true;
   var tipo=(curTipo()[selKitchen]||'—');
@@ -1029,7 +1066,7 @@ builders.resumen=function(){
         '<div style="font-size:9px;color:var(--muted);line-height:1.2">IF · Turbo · Cancel. — '+DAILY_WIN[weekMode]+'</div>'+
       '</div>'+
     '</div>';
-  if(selOps==='Todos') return toggles+companyWide()+allOpsSummary();
+  if(selOps==='Todos') return toggles+centralHub()+companyWide();
   return toggles+tipoCard+opsPriority()+(resMode==='prioridad'?groups2:groups);
 };
 
