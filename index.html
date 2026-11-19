@@ -608,27 +608,28 @@ var ORD_BYC={COL:ORD_COL,MEX:ORD_MEX,PER:ORD_PER};function curOrd(){return ORD_B
 function opsListFor(){var m=curOps(),s={};Object.keys(curIF()).forEach(function(k){if(m[k])s[m[k]]=1;});return Object.keys(s).sort();}
 function kitchensFor(){var all=Object.keys(curIF()).sort();if(selOps==='Todos')return all;var m=curOps();return all.filter(function(k){return m[k]===selOps;});}
 function populateOps(){var sel=document.getElementById('opsSel');if(!sel)return;sel.innerHTML=['Todos'].concat(opsListFor()).map(function(o){return '<option '+(o===selOps?'selected':'')+'>'+(o==='Todos'?'👤 Todos los Ops':o)+'</option>';}).join('');}
-function setOps(o){selOps=(o==='👤 Todos los Ops'?'Todos':o);var ks=kitchensFor();if(ks.indexOf(selKitchen)<0)selKitchen=ks[0]||selKitchen;populateSel();render();}
+function setOps(o){selOps=(o==='👤 Todos los Ops'?'Todos':o);kitchenPicked=false;var ks=kitchensFor();if(ks.indexOf(selKitchen)<0)selKitchen=ks[0]||selKitchen;populateSel();render();}
 var order=['resumen'];
 
 function enter(){document.getElementById('login').classList.add('hidden');}
 function logout(){document.getElementById('login').classList.remove('hidden');}
 function toggleMenu(){}
 function setMode(m){resMode=m;document.getElementById('vSec').classList.toggle('active',m==='seccion');document.getElementById('vPri').classList.toggle('active',m==='prioridad');render();}
-function setScope(v){selKitchen=v;render();}
-function setCountry(c){countryChosen=true;selCountry=c;var ops=opsListFor();selOps=(ops.length===1)?ops[0]:'Todos';var ks=kitchensFor();selKitchen=ks[0]||Object.keys(curIF()).sort()[0];populateSel();render();}
+function setScope(v){if(v===''){kitchenPicked=false;}else{kitchenPicked=true;selKitchen=v;}render();}
+function setCountry(c){countryChosen=true;kitchenPicked=false;selCountry=c;var ops=opsListFor();selOps=(ops.length===1)?ops[0]:'Todos';var ks=kitchensFor();selKitchen=ks[0]||Object.keys(curIF()).sort()[0];populateSel();render();}
 function setWeekMode(m){weekMode=m;render();}
 function populateSel(){
   populateOps();
   var sel=document.getElementById('scopeSel');var kid=curKID();
-  if(selOps==='Todos'){sel.innerHTML='<option value="" selected>— Todas las cocinas —</option>';return;}
+  if(selOps==='Todos'){var allk=Object.keys(curIF()).slice().sort(function(a,b){return (kid[a]||a).localeCompare(kid[b]||b);});sel.innerHTML='<option value="" '+(kitchenPicked?'':'selected')+'>— Resumen país —</option>'+allk.map(function(n){return '<option value="'+n+'" '+(kitchenPicked&&n===selKitchen?'selected':'')+'>'+(kid[n]||n)+'</option>';}).join('');return;}
   var ks=kitchensFor().slice().sort(function(a,b){return (kid[a]||a).localeCompare(kid[b]||b);});
   sel.innerHTML=ks.map(function(n){return '<option value="'+n+'" '+(n===selKitchen?'selected':'')+'>'+(kid[n]||n)+'</option>';}).join('');
 }
 function go(s){var el=document.getElementById('sec-'+s);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 function render(){
   applyWeekMode();
-  document.getElementById('crumb').textContent=(appView!=='indicadores'||!countryChosen||selOps==='Todos')?'':('· Cocina: '+((typeof curKID==='function'&&curKID()[selKitchen])||selKitchen));
+  var _showKit=(appView==='indicadores'&&countryChosen&&((selOps!=='Todos')||kitchenPicked));
+  document.getElementById('crumb').textContent=_showKit?('· Cocina: '+((typeof curKID==='function'&&curKID()[selKitchen])||selKitchen)):'';
   var showSel=(appView==='indicadores'&&countryChosen);
   var _os=document.getElementById('opsSel'),_ss=document.getElementById('scopeSel');
   if(_os)_os.style.display=showSel?'':'none';
@@ -999,6 +1000,23 @@ function centralHub(){
 }
 var appView='glosario';
 var countryChosen=false;
+var kitchenPicked=false;
+function pickKitchen(kn){kitchenPicked=true;selKitchen=kn;if(typeof populateSel==='function')populateSel();render();}
+function worstKitchens(){
+  var ks=Object.keys(curIF()); if(!ks.length)return '';
+  var rows=_rankKitchens(ks).filter(function(r){return r.score>0;}).slice(0,3);
+  if(!rows.length)return '';
+  var kid=(typeof curKID==='function')?curKID():{};
+  function chip(n,r){return '<span style="display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin:2px 3px 0 0;background:'+(r?"#fdeceb":"#fdf6e8")+';color:'+(r?"#d64545":"#b9821a")+'">'+n+'</span>';}
+  var cards=rows.map(function(r,i){
+    var medal=['🥇','🥈','🥉'][i]||'';
+    return '<div class="card" style="padding:11px 13px;cursor:pointer" onclick="pickKitchen(\''+r.kn.replace(/\\/g,"\\\\").replace(/'/g,"\\'")+'\')">'+
+      '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">'+medal+'</span><b style="font-size:14px;color:var(--primary)">'+(kid[r.kn]||r.kn)+'</b>'+
+      '<span style="margin-left:auto;font-size:10px;color:#d64545;font-weight:700">'+r.red.length+' en rojo'+(r.amb.length?' · '+r.amb.length+' amb':'')+'</span></div>'+
+      '<div style="margin-top:5px">'+r.red.map(function(n){return chip(n,true);}).join('')+r.amb.map(function(n){return chip(n,false);}).join('')+'</div></div>';
+  }).join('');
+  return '<div class="page-head mt" style="border:none;margin-bottom:4px"><div><h1 style="font-size:14px">🚨 3 cocinas con peor desempeño · nacional</h1></div></div><div class="grid g3">'+cards+'</div>';
+}
 function setAppView(v){appView=v;var g=document.getElementById('vGlo'),i=document.getElementById('vInd');if(g)g.classList.toggle('active',v==='glosario');if(i)i.classList.toggle('active',v==='indicadores');render();}
 function countryPicker(){
   var cs=[['COL','🇨🇴 Colombia'],['MEX','🇲🇽 México'],['PER','🇵🇪 Perú']];
@@ -1117,8 +1135,8 @@ builders.resumen=function(){
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+['COL','MEX','PER'].map(function(c){return '<button class="'+(c===selCountry?'active':'')+'" onclick="setCountry(\''+c+'\')">'+({COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'}[c])+'</button>';}).join('')+'</div>'+
       '<div style="font-size:11px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px">📅 Semana cerrada</div>'+
     '</div>';
-  if(selOps==='Todos') return toggles+companyWide()+countryGroups();
-  return toggles+tipoCard+opsPriority()+groups;
+  if(selOps==='Todos'&&!kitchenPicked) return toggles+companyWide()+worstKitchens()+countryGroups();
+  return toggles+tipoCard+(selOps!=='Todos'?opsPriority():'')+groups;
 };
 
 /* ================= IN FULL (IF / OTIF) ================= */
