@@ -41,7 +41,7 @@ tr.tot td{font-weight:800;background:#f4f7fb;border-top:2px solid #d7e0ea}
   <div class="brand">fdgy · Bono Trimestral — Jefes &amp; Segundos</div>
   <div class="sub" id="hsub"></div>
   <div class="sp"></div>
-  <a href="/bonos" style="color:#9fc4e8;font-size:12px;text-decoration:none">← Bonos</a>
+  <a href="/bonos" target="_top" style="color:#9fc4e8;font-size:12px;text-decoration:none">← Bonos</a>
 </header>
 <div class="wrap">
   <div class="tabs" id="tabs"></div>
@@ -58,12 +58,13 @@ tr.tot td{font-weight:800;background:#f4f7fb;border-top:2px solid #d7e0ea}
 var PL=JSON.parse(document.getElementById('bono-preload').textContent);
 var CUR={COL:{s:'$',loc:'es-CO'},MEX:{s:'$',loc:'es-MX'},PER:{s:'S/ ',loc:'es-PE'}};
 var NAME={COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'};
-var sel='COL';
+var EMB=new URLSearchParams(location.search).get('c');
+var sel=(EMB&&PL.data[EMB])?EMB:'COL';
 function money(c,v){return CUR[c].s+(v||0).toLocaleString(CUR[c].loc);}
 function f1(v){return v==null?'—':(Math.round(v*10)/10).toLocaleString('es',{minimumFractionDigits:1,maximumFractionDigits:1});}
 function pill(ok,txt){return '<span class="pill '+(ok?'ok':'no')+'">'+(ok?'✓ ':'✗ ')+txt+'</span>';}
 document.getElementById('hsub').textContent='Mes: '+PL.mes;
-function tabs(){document.getElementById('tabs').innerHTML=['COL','MEX','PER'].map(function(c){
+function tabs(){if(EMB){document.getElementById('tabs').style.display='none';return;}document.getElementById('tabs').innerHTML=['COL','MEX','PER'].map(function(c){
   return '<button class="'+(c===sel?'active':'')+'" onclick="pick(\''+c+'\')">'+NAME[c]+' ('+PL.data[c].length+')</button>';}).join('');}
 function pick(c){sel=c;render();}
 function render(){

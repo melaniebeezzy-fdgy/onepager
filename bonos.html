@@ -6,50 +6,95 @@
 <title>Foodology | Bonos</title>
 <link rel="icon" href="data:,">
 <style>
-:root{--navy:#0E2841;--navy2:#244768;--line:#e6ebf2;--muted:#6b7a90;--bg:#f4f6fa}
+:root{--navy:#12263f;--ink:#1b2a3d;--indigo:#5457d6;--indigo2:#ecedfb;--muted:#6b7a90;--line:#e6ebf2;--bg:#f4f6fa}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:#1b2a3d;display:flex;flex-direction:column;height:100vh}
-.topbar{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:0 16px;min-height:52px;flex-wrap:wrap}
-.topbar .brand{font-weight:800;font-size:15px;white-space:nowrap}
-.tabs{display:flex;gap:4px;flex-wrap:wrap}
-.tabs button{border:none;background:transparent;color:#cfe0f2;font-weight:600;padding:9px 14px;border-radius:9px 9px 0 0;cursor:pointer;font-size:13px;white-space:nowrap}
-.tabs button:hover{background:#ffffff1a;color:#fff}
-.tabs button.active{background:var(--bg);color:var(--navy);font-weight:800}
-.stage{flex:1;position:relative;min-height:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column}
+/* ===== PICKER ===== */
+#picker{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+#picker .logo{font-weight:900;color:var(--navy);font-size:15px;letter-spacing:.5px;margin-bottom:18px}
+#picker h1{font-size:30px;color:var(--navy);margin:0 0 4px;font-weight:800}
+#picker p{color:var(--muted);margin:0 0 26px;font-size:14px}
+#picker .cs{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#picker .cs button{font-size:17px;font-weight:800;padding:20px 34px;border-radius:14px;border:1.5px solid var(--indigo);background:#fff;color:var(--indigo);cursor:pointer;transition:.15s}
+#picker .cs button:hover{background:var(--indigo);color:#fff;transform:translateY(-2px)}
+/* ===== APP ===== */
+#app{display:none;flex-direction:column;height:100%}
+.topbar{background:var(--navy);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;min-height:52px}
+.topbar .logo{font-weight:900;font-size:15px}
+.topbar .ttl{font-weight:600;font-size:14px;opacity:.9}
+.topbar .ttl b{color:#8ea2ff}
+.topbar .sp{flex:1}
+.pills{display:flex;gap:6px}
+.pills button{border:1px solid #ffffff33;background:transparent;color:#cfe0f2;font-weight:700;padding:6px 13px;border-radius:9px;cursor:pointer;font-size:12.5px}
+.pills button.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.tabbar{background:#fff;border-bottom:1px solid var(--line);display:flex;gap:4px;padding:0 14px;overflow-x:auto}
+.tabbar button{border:none;background:transparent;color:var(--muted);font-weight:700;font-size:13.5px;padding:13px 16px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tabbar button:hover{color:var(--navy)}
+.tabbar button.active{color:var(--indigo);border-bottom-color:var(--indigo)}
+.stage{flex:1;min-height:0;position:relative}
 iframe{border:none;width:100%;height:100%;display:block;background:var(--bg)}
-.ph{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:var(--muted);padding:30px}
+.ph{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}
 .ph .ic{font-size:46px;margin-bottom:10px}
 .ph h2{color:var(--navy);margin:0 0 6px;font-size:20px}
 .ph p{margin:0;font-size:13px;max-width:460px;line-height:1.5}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="brand">💰 Bonos · Foodology</div>
-  <div class="tabs" id="tabs"></div>
+<div id="picker">
+  <div class="logo">fdgy.</div>
+  <h1>💰 Bonos Foodology</h1>
+  <p>Elige un país para ver sus bonos</p>
+  <div class="cs">
+    <button onclick="setCountry('COL')">🇨🇴 Colombia</button>
+    <button onclick="setCountry('MEX')">🇲🇽 México</button>
+    <button onclick="setCountry('PER')">🇵🇪 Perú</button>
+  </div>
 </div>
-<div class="stage" id="stage"></div>
+
+<div id="app">
+  <div class="topbar">
+    <span class="logo">fdgy.</span>
+    <span class="ttl">Bonos Foodology · <b id="cname"></b></span>
+    <span class="sp"></span>
+    <div class="pills" id="pills"></div>
+  </div>
+  <div class="tabbar" id="tabbar"></div>
+  <div class="stage" id="stage"></div>
+</div>
+
 <script>
+var NAME={COL:'🇨🇴 Colombia',MEX:'🇲🇽 México',PER:'🇵🇪 Perú'};
 var TABS=[
- {id:'wow',label:'Mensual WOW Cocinas',src:'/bonos-wow'},
- {id:'jef',label:'Trimestral Jefes/Segundos',src:'/bonos-jefes'},
- {id:'ops',label:'Trimestral Ops Manager',ph:'El esquema de este bono está por definir. Cuando tengas su estructura (indicadores, metas y montos) lo conectamos aquí.'},
- {id:'cp', label:'Trimestral Gerentes de CP',ph:'El esquema de este bono está por definir. Cuando tengas su estructura lo conectamos aquí.'}
+ {id:'wow',ic:'🗓️',label:'Mensual WOW Cocinas',src:'/bonos-wow'},
+ {id:'jef',ic:'👥',label:'Trimestral Jefes/Segundos',src:'/bonos-jefes'},
+ {id:'ops',ic:'🧭',label:'Trimestral Ops Manager',ph:'El esquema de este bono está por definir. Cuando tengas su estructura (indicadores, metas y montos) lo conectamos aquí.'},
+ {id:'cp', ic:'🏭',label:'Trimestral Gerentes de CP',ph:'El esquema de este bono está por definir. Cuando tengas su estructura lo conectamos aquí.'}
 ];
-var cur=null;
-function render(){
-  document.getElementById('tabs').innerHTML=TABS.map(function(t){
-    return '<button class="'+(t.id===cur?'active':'')+'" onclick="pick(\''+t.id+'\')">'+t.label+'</button>';}).join('');
-  var t=TABS.filter(function(x){return x.id===cur;})[0];
-  var st=document.getElementById('stage');
-  if(t.src){st.innerHTML='<iframe src="'+t.src+'" title="'+t.label+'"></iframe>';}
-  else{st.innerHTML='<div class="ph"><div class="ic">🛠️</div><h2>'+t.label+'</h2><p>'+t.ph+'</p></div>';}
+var country=null, tab='wow';
+function setCountry(c){country=c;renderApp();}
+function pick(id){tab=id;syncHash();renderStage();renderTabs();}
+function syncHash(){location.hash=country+'/'+tab;}
+function renderApp(){
+  document.getElementById('picker').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('cname').textContent=NAME[country];
+  document.getElementById('pills').innerHTML=['COL','MEX','PER'].map(function(c){
+    return '<button class="'+(c===country?'active':'')+'" onclick="setCountry(\''+c+'\')">'+NAME[c]+'</button>';}).join('');
+  renderTabs();renderStage();syncHash();
 }
-function pick(id){cur=id;location.hash=id;render();}
-cur=(location.hash||'#wow').slice(1);
-if(!TABS.some(function(t){return t.id===cur;}))cur='wow';
-render();
+function renderTabs(){
+  document.getElementById('tabbar').innerHTML=TABS.map(function(t){
+    return '<button class="'+(t.id===tab?'active':'')+'" onclick="pick(\''+t.id+'\')"><span>'+t.ic+'</span>'+t.label+'</button>';}).join('');
+}
+function renderStage(){
+  var t=TABS.filter(function(x){return x.id===tab;})[0];
+  var st=document.getElementById('stage');
+  if(t.src){st.innerHTML='<iframe src="'+t.src+'?c='+country+'" title="'+t.label+'"></iframe>';}
+  else{st.innerHTML='<div class="ph"><div class="ic">🛠️</div><h2>'+t.label+' · '+NAME[country]+'</h2><p>'+t.ph+'</p></div>';}
+}
+// deep-link: #COL/jef
+(function(){var h=(location.hash||'').slice(1).split('/');if(h[0]&&NAME[h[0]]){country=h[0];if(h[1]&&TABS.some(function(t){return t.id===h[1];}))tab=h[1];renderApp();}})();
 </script>
 </body>
 </html>
