@@ -174,7 +174,7 @@ function cls(p){return p>=0.8?'c-g':(p>=0.5?'c-a':'c-r');}
 function cell(oi,o,ind,m){
   if(!applies(o,ind))return '<span class="cell c-n"><b>–</b><small>no aplica</small></span>';
   var a=agg(o,m,ind);if(!PL.loaded[m]||!a||!hasInd(o,m,ind))return '<span class="cell c-n"><b>–</b><small>sin datos</small></span>';
-  return '<span class="cell '+cls(a.pct)+'" onclick="detail('+oi+',\''+ind+'\','+m+')"><b>'+Math.round(a.pct*100)+'%</b><small>'+a.full+'/'+a.N+(a.part?' <span class="pt">+'+a.part+' al 80%</span>':'')+'</small></span>';
+  return '<span class="cell '+cls(a.pct)+'" onclick="detail('+oi+',\''+ind+'\','+m+')"><b>'+Math.round(a.pct*100)+'%</b><small>'+(a.full+a.part)+'/'+a.N+'</small></span>';
 }
 function render(){
   var lm=[10,11,12].filter(function(m){return PL.loaded[m];});document.getElementById('hsub').textContent=PL.q+' · datos hasta '+(lm.length?MN[lm[lm.length-1]].toLowerCase():'—');if(EMB){var _h=document.querySelector('header');if(_h)_h.style.display='none';try{parent.postMessage({bonoSub:document.getElementById('hsub').textContent},location.origin);}catch(e){}}
@@ -341,7 +341,7 @@ function saveCfg(){
 
 /* ---------- detalle por cocina ---------- */
 function closeM(){document.getElementById('ov').classList.remove('on');}
-function pill(s){return s===1?'<span class="pill p-g">100%</span>':(s>0?'<span class="pill p-a">80%</span>':'<span class="pill p-r">No cumple</span>');}
+function pill(s){return s===1?'<span class="pill p-g">100%</span>':(s>0?'<span class="pill p-a">Cumplió al 80% (no al 100%)</span>':'<span class="pill p-r">No cumple</span>');}
 function indVal(e,ind){
   if(ind==='if')return e['if']==null?'–':f2(e['if'])+'%';
   if(ind==='tb')return e.tb==null?'Sin dato':f2(e.tb)+' min';
@@ -358,7 +358,7 @@ function detail(oi,ind,m){
   var o=PL.ops[oi],ks=o.ks[m],a=agg(o,m,ind);
   var rows=ks.map(function(e){var s=IND[ind].f(e);var why=(ind==='gap'&&s===0)?gapWhy(e):'';
     return '<tr><td>'+e.k+'</td><td>'+indVal(e,ind)+'</td><td>'+indMeta(e,ind)+'</td><td>'+pill(s||0)+(why?'<div style="font-size:11px;color:var(--r)">'+why+'</div>':'')+'</td></tr>';}).join('');
-  document.getElementById('modal').innerHTML='<button class="x" onclick="closeM()">×</button><h3>'+o.ops+' · '+IND[ind].n+' · '+MN[m]+'</h3><div class="ms">'+Math.round(a.pct*100)+'% de cumplimiento · '+a.full+' de '+a.N+' cocinas al 100%'+(a.part?' · '+a.part+' al 80%':'')+'</div><table><thead><tr><th>Cocina</th><th>Valor</th><th>Meta</th><th>Resultado</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  document.getElementById('modal').innerHTML='<button class="x" onclick="closeM()">×</button><h3>'+o.ops+' · '+IND[ind].n+' · '+MN[m]+'</h3><div class="ms">'+Math.round(a.pct*100)+'% de cumplimiento · '+(a.full+a.part)+' de '+a.N+' cocinas cumplen'+(a.part?' ('+a.full+' al 100%, '+a.part+' al 80%)':'')+'</div><table><thead><tr><th>Cocina</th><th>Valor</th><th>Meta</th><th>Resultado</th></tr></thead><tbody>'+rows+'</tbody></table>';
   document.getElementById('ov').classList.add('on');
 }
 function opsDetail(oi){
@@ -378,7 +378,7 @@ function exportX(){
     var aoa=[['Ops Manager','Turbo aplica','Cocinas'].concat(inds.map(function(i){return IND[i].n+' oct %';}),inds.map(function(i){return IND[i].n+' oct cocinas';}),['Logro Q %','Pago Q'])];
     var det=[['Ops Manager','Cocina','IF %','IF puntaje','GAP %','Tipo','Accuracy %','GAP puntaje','Turbo min','Turbo puntaje','Rotación %','Meta rot %','Rotación puntaje']];
     PL.ops.forEach(function(o){if(o.c!==c)return;var q=qRes(o),r=monthRes(o,10);
-      aoa.push([o.ops,o.turbo&&c==='COL'?'Sí':'No',o.ks['10'].length].concat(inds.map(function(i){return applies(o,i)?Math.round(r.a[i].pct*100):'-';}),inds.map(function(i){return applies(o,i)?r.a[i].full+'/'+r.a[i].N:'-';}),[Math.round(q.logro*100),Math.round(q.pago)]));
+      aoa.push([o.ops,o.turbo&&c==='COL'?'Sí':'No',o.ks['10'].length].concat(inds.map(function(i){return applies(o,i)?Math.round(r.a[i].pct*100):'-';}),inds.map(function(i){return applies(o,i)?(r.a[i].full+r.a[i].part)+'/'+r.a[i].N:'-';}),[Math.round(q.logro*100),Math.round(q.pago)]));
       o.ks['10'].forEach(function(e){det.push([o.ops,e.k,e['if'],sIF(e),e.gap,e.tipo,e.acc,sGAP(e),e.tb==null?'sin dato':e.tb,sTB(e),e.rot,e.meta,sROT(e)]);});});
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),c+' resumen');
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(det),c+' detalle cocinas');
