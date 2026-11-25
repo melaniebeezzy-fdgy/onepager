@@ -109,7 +109,7 @@ tr.tot td{font-weight:800;background:#f4f7fb;border-top:2px solid #d7e0ea}
   <div class="cards" id="cards"></div>
   <div class="bar"><h2 id="ttl"></h2><button class="btn" onclick="exportX()">⬇️ Descargar Excel</button></div>
   <div class="tablewrap"><table class="main" id="tbl"></table></div>
-  <p class="hint">Haz clic en un indicador para ver el detalle por cocina (100% · 80% · no cumple) o en el nombre del Ops para ver todos sus indicadores. "–" = no aplica. Pago Q = suma de los meses cargados (Logro × bono máx. por cocina ÷ 3 × nº cocinas).</p>
+  <p class="hint">Haz clic en un indicador para ver el detalle por cocina (100% · 80% · no cumple) o en el nombre del Ops para ver todos sus indicadores. "–" = no aplica. El Pago suma solo los meses abiertos arriba (los tres = Q): Logro × bono máx. por cocina ÷ 3 × nº cocinas.</p>
 </div>
 
 <div class="ov" id="ov" onclick="if(event.target===this)closeM()"><div class="modal" id="modal"></div></div>
@@ -155,7 +155,8 @@ function monthRes(o,m){
   ['if','gap','tb','rot'].forEach(function(i){if(!applies(o,i))return;a[i]=agg(o,m,i);var wk=(i==='tb')?'tb':i;lg+=a[i].pct*(w[wk]||0)/100;});
   var N=o.ks[m].length;return {a:a,logro:lg,pago:lg*o.monto/3*N,max:o.monto/3*N,N:N};
 }
-function qRes(o){var pago=0,max=0;[10,11,12].forEach(function(m){var r=monthRes(o,m);if(r){pago+=r.pago;max+=r.max;}});return {pago:pago,max:max,logro:max?pago/max:0};}
+function qLabel(vm){return vm.length===3?'Q':(vm.length===0?'selección':vm.map(function(m){return MS[m];}).join('+'));}
+function qRes(o,ms){var pago=0,max=0;(ms||[10,11,12]).forEach(function(m){var r=monthRes(o,m);if(r){pago+=r.pago;max+=r.max;}});return {pago:pago,max:max,logro:max?pago/max:0};}
 
 /* ---------- fecha / estado de meses ---------- */
 function mstatus(m){
@@ -183,18 +184,18 @@ function render(){
   document.getElementById('chips').innerHTML=[10,11,12].map(function(m){var s=mstatus(m);
     return '<div class="mchip'+(OPEN[m]?' open':'')+'" onclick="toggleM('+m+')"><span class="dot '+s.c+'"></span>'+MN[m]+'<small>'+s.t+' '+(OPEN[m]?'▾':'▸')+'</small></div>';}).join('');
   var rows=PL.ops.map(function(o,i){return {o:o,i:i};}).filter(function(x){return x.o.c===sel;});
-  var tp=0,tm=0;rows.forEach(function(x){var q=qRes(x.o);tp+=q.pago;tm+=q.max;});
+  var vm=visMonths(),QL=qLabel(vm);var tp=0,tm=0;rows.forEach(function(x){var q=qRes(x.o,vm);tp+=q.pago;tm+=q.max;});
   var avg=tm?Math.round(tp/tm*100):0;
-  document.getElementById('cards').innerHTML=[['Ops Managers',rows.length],['Cocinas (oct)',rows.reduce(function(s,x){return s+x.o.ks['10'].length;},0)],['Logro Q a la fecha',avg+'%'],['Pago Q acumulado',money(sel,tp)]]
+  document.getElementById('cards').innerHTML=[['Ops Managers',rows.length],['Cocinas (oct)',rows.reduce(function(s,x){return s+x.o.ks['10'].length;},0)],['Logro '+QL+' a la fecha',avg+'%'],['Pago '+QL+' acumulado',money(sel,tp)]]
     .map(function(x){return '<div class="card"><div class="lbl">'+x[0]+'</div><div class="val">'+x[1]+'</div></div>';}).join('');
   document.getElementById('ttl').textContent='Scorecard Q4 — '+NAME[sel];
-  var vm=visMonths(),inds=indList(),isCol=(sel==='COL');
+  var inds=indList(),isCol=(sel==='COL');
   var h1='<tr><th class="l" rowspan="2">Ops Manager</th>'+(isCol?'<th rowspan="2">Turbo</th>':'')+'<th rowspan="2">Cocinas</th>';
   inds.forEach(function(i){h1+='<th class="grp" colspan="'+Math.max(vm.length,1)+'">'+IND[i].n+'</th>';});
-  h1+='<th class="grp" rowspan="2">Logro Q</th><th rowspan="2">Pago Q</th></tr><tr>';
+  h1+='<th class="grp" rowspan="2">Logro '+QL+'</th><th rowspan="2">Pago '+QL+'</th></tr><tr>';
   inds.forEach(function(i){if(!vm.length)h1+='<th class="grp">–</th>';else vm.forEach(function(m,k){h1+='<th'+(k===0?' class="grp"':'')+'>'+MS[m]+'</th>';});});
   h1+='</tr>';
-  var body=rows.map(function(x){var o=x.o,q=qRes(o);
+  var body=rows.map(function(x){var o=x.o,q=qRes(o,vm);
     var t='<tr><td class="l opsn" onclick="opsDetail('+x.i+')">'+o.ops+'</td>'+(isCol?'<td><span class="'+(o.turbo?'yes':'no')+'">'+(o.turbo?'Sí aplica':'No aplica')+'</span></td>':'')+'<td>'+o.ks['10'].length+'</td>';
     inds.forEach(function(i){if(!vm.length)t+='<td class="grp">–</td>';else vm.forEach(function(m,k){t+='<td'+(k===0?' class="grp"':'')+'>'+cell(x.i,o,i,m)+'</td>';});});
     t+='<td class="grp"><b>'+Math.round(q.logro*100)+'%</b></td><td><b>'+money(sel,q.pago)+'</b></td></tr>';return t;}).join('');
