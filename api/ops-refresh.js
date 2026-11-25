@@ -1,7 +1,7 @@
 // Serverless (Vercel) — "Refrescar métrica" del Bono Trimestral Ops Managers.
 // POST { secret, metric, month }   metric: if | tb | gap | acc | rot   month: 10 | 11 | 12
 //
-//  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina
+//  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina (excluye provider foodologypos, igual que el sheet)
 //  tb   -> warehouse (RTWT Turbo, solo COL): handed_to_delivery - max(en tienda, recibida+5), piso 0, null=0
 //  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes (directo, sin validar contra el file)
 //  gap  -> Sheet del bono, pestaña GAP+ACC (la que se actualiza manualmente)
@@ -101,6 +101,7 @@ async function mIF(m) {
     `SELECT kitchen_id, COUNT(order_id) AS total, SUM(is_infull) AS quejas
        FROM fdgy_views.ontime_infull_order
       WHERE company_id = '${CID}' AND order_date >= '${a}' AND order_date < '${b}' AND country IN ('COL','MEX')
+        AND LOWER(provider_name) <> 'foodologypos'
       GROUP BY 1`))).rows;
   const out = {};
   rows.forEach((r) => { const t = Number(r.total); if (t > 0) out[r.kitchen_id] = { if: r2((1 - Number(r.quejas) / t) * 100) }; });
@@ -113,7 +114,7 @@ async function mTB(m) {
             AVG(COALESCE(GREATEST(DATEDIFF(second, GREATEST(oi.provider_domiciliary_in_store, DATEADD(minute,5,oi.order_received_at_local)), oc.order_state_handed_to_delivery)/60.0, 0), 0)) AS rtwt
        FROM (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi
        JOIN (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') oc ON oc.provider_order_id = oi.provider_order_id
-      WHERE oi.order_date >= '${a}' AND oi.order_date < '${b}' AND oi.country = 'COL' AND oi.brand ILIKE '%turbo%'
+      WHERE oi.order_date >= '${a}' AND oi.order_date < '${b}' AND oi.country = 'COL' AND oi.brand ILIKE '%turbo%' AND LOWER(oi.provider_name) <> 'foodologypos'
       GROUP BY 1`))).rows;
   const out = {};
   rows.forEach((r) => { out[r.kitchen_id] = { tb: r2(Number(r.rtwt)) }; });
