@@ -55,7 +55,7 @@ iframe{border:none;width:100%;height:100%;display:block;background:var(--bg)}
 <div id="app">
   <div class="topbar">
     <span class="logo">fdgy.</span>
-    <span class="ttl">Bonos Foodology · <b id="cname"></b></span>
+    <span class="ttl">Bonos Foodology · <b id="cname"></b><span id="tname"></span><span id="tsub" style="opacity:.7;font-weight:500"></span></span>
     <span class="sp"></span>
     <div class="pills" id="pills"></div>
   </div>
@@ -74,6 +74,8 @@ var TABS=[
 var country=null, tab='wow';
 function setCountry(c){country=c;if(!tabsFor(c).some(function(t){return t.id===tab;}))tab='wow';renderApp();}
 function pick(id){tab=id;syncHash();renderStage();renderTabs();}
+function updTitle(){var t=tabsFor(country).filter(function(x){return x.id===tab;})[0];document.getElementById('tname').textContent=t?' · '+t.label:'';document.getElementById('tsub').textContent='';}
+window.addEventListener('message',function(e){if(e.origin!==location.origin||!e.data||typeof e.data.bonoSub!=='string')return;document.getElementById('tsub').textContent=e.data.bonoSub?' · '+e.data.bonoSub:'';});
 function syncHash(){location.hash=country+'/'+tab;}
 function renderApp(){
   document.getElementById('picker').style.display='none';
@@ -85,7 +87,7 @@ function renderApp(){
 }
 // Perú no tiene bono de Ops Manager ni de Gerentes de CP
 function tabsFor(c){return TABS.filter(function(t){return !(c==='PER'&&(t.id==='ops'||t.id==='cp'));});}
-function renderTabs(){
+function renderTabs(){updTitle();
   document.getElementById('tabbar').innerHTML=tabsFor(country).map(function(t){
     return '<button class="'+(t.id===tab?'active':'')+'" onclick="pick(\''+t.id+'\')"><span>'+t.ic+'</span>'+t.label+'</button>';}).join('');
 }

@@ -177,7 +177,7 @@ function cell(oi,o,ind,m){
   return '<span class="cell '+cls(a.pct)+'" onclick="detail('+oi+',\''+ind+'\','+m+')"><b>'+Math.round(a.pct*100)+'%</b><small>'+a.full+'/'+a.N+(a.part?' <span class="pt">+'+a.part+' al 80%</span>':'')+'</small></span>';
 }
 function render(){
-  var lm=[10,11,12].filter(function(m){return PL.loaded[m];});document.getElementById('hsub').textContent=PL.q+' · datos hasta '+(lm.length?MN[lm[lm.length-1]].toLowerCase():'—');
+  var lm=[10,11,12].filter(function(m){return PL.loaded[m];});document.getElementById('hsub').textContent=PL.q+' · datos hasta '+(lm.length?MN[lm[lm.length-1]].toLowerCase():'—');if(EMB){var _h=document.querySelector('header');if(_h)_h.style.display='none';try{parent.postMessage({bonoSub:document.getElementById('hsub').textContent},location.origin);}catch(e){}}
   tabs();defs();
   var now=new Date();
   document.getElementById('today').textContent='Hoy: '+now.toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'})+' · los meses sin datos cargados aparecen plegados.';
