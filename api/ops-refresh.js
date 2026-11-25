@@ -3,7 +3,7 @@
 //
 //  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina
 //  tb   -> warehouse (RTWT Turbo, solo COL): handed_to_delivery - max(en tienda, recibida+5), piso 0, null=0
-//  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes. Compara contra la pestaña ACC del sheet y TOMA el warehouse.
+//  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes (directo, sin validar contra el file)
 //  gap  -> Sheet del bono, pestaña GAP+ACC (la que se actualiza manualmente)
 //  rot  -> Sheet del bono, pestaña Rotacion (alimentada con la info de People)
 //
@@ -63,15 +63,6 @@ export function parseRot(rows, m) {            // Rotacion: Mes|Cumple|OPS|Moder
     const rot = num(r[10]), meta = num(r[3]);
     if (rot === null) return;
     out[String(r[4]).trim()] = meta === null ? { rot } : { rot, meta };
-  });
-  return out;
-}
-export function parseAccFile(rows, m) {        // ACC: Mes|Cumple|Tipo|OPS|Meta|Fecha|kitchen_id|Accuracy
-  const out = {};
-  (rows || []).slice(1).forEach((r) => {
-    if (!sameMonth(r[0], m) || !r[6]) return;
-    const a = num(r[7]);
-    if (a !== null) out[String(r[6]).trim()] = a;
   });
   return out;
 }
@@ -198,26 +189,17 @@ export default async function handler(req, res) {
   if (!process.env.GITHUB_TOKEN) return res.status(500).json({ ok: false, error: 'server_missing_GITHUB_TOKEN' });
 
   try {
-    const extra = {};
     let values;
     if (metric === 'if') values = await mIF(month);
     else if (metric === 'tb') values = await mTB(month);
     else if (metric === 'gap') values = parseGap(await sheetRows(OPS_SHEET, 'GAP+ACC'), month);
     else if (metric === 'rot') values = parseRot(await sheetRows(OPS_SHEET, 'Rotacion'), month);
-    else {                                           // acc: warehouse manda; se compara con el file
-      values = await mACC(month);
-      let file = null;
-      try { file = parseAccFile(await sheetRows(OPS_SHEET, 'ACC'), month); } catch (e) { extra.fileError = String(e.message || e); }
-      if (file) {
-        extra.compare = Object.keys({ ...Object.fromEntries(Object.keys(values).map((k) => [k, 1])), ...Object.fromEntries(Object.keys(file).map((k) => [k, 1])) })
-          .map((k) => ({ k, mcp: values[k] ? values[k].acc : null, file: file[k] === undefined ? null : file[k] }));
-      }
-    }
+    else values = await mACC(month);                 // acc: directo del warehouse
     const n = Object.keys(values).length;
     if (!n) return res.status(200).json({ ok: false, error: 'sin_datos_para_el_mes', metric, month });
     const ts = new Date().toISOString();
     await saveData(metric, month, values, ts);
-    return res.status(200).json({ ok: true, metric, month, ts, n, data: values, ...extra });
+    return res.status(200).json({ ok: true, metric, month, ts, n, data: values });
   } catch (e) {
     const code = e && e.code === 'cfg' ? 400 : 502;
     return res.status(code).json({ ok: false, error: String((e && e.message) || 'exception').slice(0, 200) });
