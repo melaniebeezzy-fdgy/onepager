@@ -208,7 +208,7 @@ function tabs(){if(EMB){document.getElementById('tabs').style.display='none';ret
 
 /* ---------- datos refrescados (superpuestos a la foto base) ---------- */
 var MNAME={'if':'IF',tb:'Turbo',gap:'GAP',acc:'Accuracy',rot:'Rotación'};
-var SRC={'if':'Warehouse (MCP)',tb:'Warehouse (MCP)',gap:'Sheet de GAP (carga manual)',acc:'Warehouse (MCP) · se valida contra el file',rot:'Sheet de People (pestaña Rotación)'};
+var SRC={'if':'Warehouse (MCP)',tb:'Warehouse (MCP)',gap:'Sheet de GAP (carga manual)',acc:'Warehouse (MCP)',rot:'Sheet de People (pestaña Rotación)'};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function hasInd(o,m,ind){var ks=o.ks[m]||[];return ks.some(function(e){return e[ind]!=null;});}
 function missingInds(m){var miss=[];
@@ -266,20 +266,9 @@ function callRefresh(metric,m){
     .then(function(r){return r.json().then(function(j){return {s:r.status,j:j};});})
     .then(function(x){var out={m:m,ok:false,err:null};
       if(x.s===401){SECRET=null;out.err='Contraseña incorrecta o vencida: vuelve a pulsar Refrescar.';return out;}
-      if(x.j&&x.j.ok){var c=mergeData(metric,m,x.j.data,x.j.ts);out.ok=true;out.n=x.j.n;out.compare=x.j.compare;out.fileError=x.j.fileError;out.changes=c.changes;out.news=c.news;return out;}
+      if(x.j&&x.j.ok){var c=mergeData(metric,m,x.j.data,x.j.ts);out.ok=true;out.n=x.j.n;out.changes=c.changes;out.news=c.news;return out;}
       out.err=errText(x.j&&x.j.error);return out;})
     .catch(function(){return {m:m,ok:false,err:'Sin conexión con el servidor.'};});
-}
-function accCompare(r){
-  if(r.fileError)return '<div class="msg" style="display:block;margin:6px 0;color:var(--a)">No se pudo leer el file para comparar ('+esc(r.fileError)+'). Se tomó el warehouse.</div>';
-  if(!r.compare)return '';
-  var cmp=r.compare.filter(function(c){return findKitchen(c.k);});
-  var both=cmp.filter(function(c){return c.mcp!=null&&c.file!=null;});
-  var diff=both.filter(function(c){return Math.abs(c.mcp-c.file)>0.01;});
-  var onlyM=cmp.filter(function(c){return c.mcp!=null&&c.file==null;}).length,onlyF=cmp.filter(function(c){return c.mcp==null&&c.file!=null;}).length;
-  var h='<div style="margin:8px 0;padding:8px 10px;border-radius:8px;background:'+(diff.length?'var(--ab)':'var(--gb)')+';font-size:12.5px"><b>Validación vs tu file:</b> '+(both.length-diff.length)+' de '+both.length+' cocinas coinciden'+(diff.length?' · '+diff.length+' difieren (se toma el warehouse)':' ✅')+' · solo en warehouse: '+onlyM+' · solo en file: '+onlyF+'.</div>';
-  if(diff.length)h+='<table class="chg"><thead><tr><th>Cocina</th><th>Warehouse</th><th>File</th><th>Dif.</th></tr></thead><tbody>'+diff.slice(0,20).map(function(c){return '<tr><td>'+esc(c.k)+'</td><td><b>'+f2(c.mcp)+'</b></td><td class="o">'+f2(c.file)+'</td><td>'+f2(c.mcp-c.file)+'</td></tr>';}).join('')+'</tbody></table>';
-  return h;
 }
 function showResult(metric,res,before,after){
   var h='<button class="x" onclick="closeM()">×</button><h3>↻ '+MNAME[metric]+' · resultado</h3><div class="ms">Fuente: '+SRC[metric]+'</div>';
@@ -288,7 +277,6 @@ function showResult(metric,res,before,after){
     if(!r.ok){h+='<div class="msg" style="display:block;margin:0;color:var(--r)">'+esc(r.err)+'</div>';return;}
     h+='<div style="font-size:12.5px">'+r.n+' cocinas leídas · '+(r.news?r.news+' nuevas · ':'')+r.changes.length+' con cambio</div>';
     if(r.changes.length){h+='<table class="chg"><thead><tr><th>Cocina</th><th>Antes</th><th>Ahora</th></tr></thead><tbody>'+r.changes.slice(0,15).map(function(c){return '<tr><td>'+esc(c.k)+'</td><td class="o">'+f2(c.o)+'</td><td><b>'+f2(c.n)+'</b></td></tr>';}).join('')+'</tbody></table>'+(r.changes.length>15?'<div class="msg" style="display:block">… y '+(r.changes.length-15)+' más</div>':'');}
-    if(metric==='acc')h+=accCompare(r);
   });
   h+='<div class="ms" style="margin-top:12px">Pago Q acumulado: '+['COL','MEX'].map(function(c){return NAME[c]+' '+money(c,before[c])+' → <b>'+money(c,after[c])+'</b>';}).join(' · ')+'</div><div class="ms">Los datos nuevos se publican para todos en ~1 minuto.</div>';
   document.getElementById('modal').innerHTML=h;document.getElementById('ov').classList.add('on');
