@@ -9,7 +9,9 @@
 //
 // Variables de entorno en Vercel (nunca llegan al navegador):
 //   ADMIN_SECRET, GITHUB_TOKEN                      (ya existen, las usa /api/update-admin y /api/ops-config)
-//   REDSHIFT_HOST, REDSHIFT_PORT(5439), REDSHIFT_DB, REDSHIFT_USER, REDSHIFT_PASSWORD   (usuario de SOLO LECTURA)
+//   Warehouse (usuario de SOLO LECTURA), mismos nombres que el otro proyecto: o bien
+//     WAREHOUSE_HOST, WAREHOUSE_PORT(5439), WAREHOUSE_DATABASE, WAREHOUSE_USER, WAREHOUSE_PASSWORD
+//     o la cadena única WAREHOUSE_URL (postgres://user:pass@host:5439/db). REDSHIFT_* sigue valiendo como respaldo.
 //   GOOGLE_SA_EMAIL, GOOGLE_SA_PRIVATE_KEY          (cuenta de servicio; compartirle el sheet como lector)
 //   opcionales: OPS_SHEET_ID, OPS_YEAR (2026), REDSHIFT_COMPANY_ID (fdgy), GITHUB_REPO, GITHUB_BRANCH
 // Los resultados se guardan en ops-data.json (repo) y la vista los superpone sobre la foto base.
@@ -68,16 +70,28 @@ export function parseRot(rows, m) {            // Rotacion: Mes|Cumple|OPS|Moder
 }
 
 /* ---------- warehouse ---------- */
+function dbConfig() {
+  const E = process.env;
+  // Formato 1: cadena única WAREHOUSE_URL (postgres://user:pass@host:5439/db)
+  if (E.WAREHOUSE_URL) {
+    try {
+      const u = new URL(E.WAREHOUSE_URL);
+      return { host: u.hostname, port: parseInt(u.port || '5439', 10), database: decodeURIComponent(u.pathname.replace(/^\//, '')), user: decodeURIComponent(u.username), password: decodeURIComponent(u.password) };
+    } catch (e) { const er = new Error('bad_env:WAREHOUSE_URL'); er.code = 'cfg'; throw er; }
+  }
+  // Formato 2: componentes WAREHOUSE_* (o REDSHIFT_* como respaldo)
+  const pick = (a, b) => E[a] || E[b];
+  const c = { host: pick('WAREHOUSE_HOST', 'REDSHIFT_HOST'), port: parseInt(pick('WAREHOUSE_PORT', 'REDSHIFT_PORT') || '5439', 10),
+    database: pick('WAREHOUSE_DATABASE', 'REDSHIFT_DB'), user: pick('WAREHOUSE_USER', 'REDSHIFT_USER'), password: pick('WAREHOUSE_PASSWORD', 'REDSHIFT_PASSWORD') };
+  const miss = [['host', 'WAREHOUSE_HOST'], ['database', 'WAREHOUSE_DATABASE'], ['user', 'WAREHOUSE_USER'], ['password', 'WAREHOUSE_PASSWORD']].filter((x) => !c[x[0]]).map((x) => x[1]);
+  if (miss.length) { const er = new Error('missing_env:' + miss.join(',')); er.code = 'cfg'; throw er; }
+  return c;
+}
 async function withDb(fn) {
-  const miss = ['REDSHIFT_HOST', 'REDSHIFT_DB', 'REDSHIFT_USER', 'REDSHIFT_PASSWORD'].filter((k) => !process.env[k]);
-  if (miss.length) { const e = new Error('missing_env:' + miss.join(',')); e.code = 'cfg'; throw e; }
+  const cfg = dbConfig();
   const pgm = await import('pg');
   const Client = (pgm.default || pgm).Client;
-  const c = new Client({
-    host: process.env.REDSHIFT_HOST, port: parseInt(process.env.REDSHIFT_PORT || '5439', 10),
-    database: process.env.REDSHIFT_DB, user: process.env.REDSHIFT_USER, password: process.env.REDSHIFT_PASSWORD,
-    ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 12000, statement_timeout: 50000,
-  });
+  const c = new Client({ ...cfg, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 12000, statement_timeout: 50000 });
   await c.connect();
   try { return await fn(c); } finally { try { await c.end(); } catch (e) { /* ignore */ } }
 }
