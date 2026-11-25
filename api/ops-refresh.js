@@ -2,7 +2,7 @@
 // POST { secret, metric, month }   metric: if | tb | gap | acc | rot   month: 10 | 11 | 12
 //
 //  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina (excluye provider foodologypos, igual que el sheet)
-//  tb   -> warehouse (RTWT Turbo, solo COL): handed_to_delivery - max(en tienda, recibida+5), piso 0, null=0
+//  tb   -> warehouse (RTWT Turbo, solo COL): entregada_a_domiciliario - max(domiciliario en tienda, recibida+5), piso 0; excluye nulos y valores > 30 min
 //  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes (directo, sin validar contra el file)
 //  gap  -> Sheet del bono, pestaña GAP+ACC (la que se actualiza manualmente)
 //  rot  -> Sheet del bono, pestaña Rotacion (alimentada con la info de People)
@@ -110,11 +110,14 @@ async function mIF(m) {
 async function mTB(m) {
   const [a, b] = monthRange(m);
   const rows = (await withDb((c) => c.query(
-    `SELECT oi.kitchen_id,
-            AVG(COALESCE(GREATEST(DATEDIFF(second, GREATEST(oi.provider_domiciliary_in_store, DATEADD(minute,5,oi.order_received_at_local)), oc.order_state_handed_to_delivery)/60.0, 0), 0)) AS rtwt
-       FROM (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi
-       JOIN (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') oc ON oc.provider_order_id = oi.provider_order_id
-      WHERE oi.order_date >= '${a}' AND oi.order_date < '${b}' AND oi.country = 'COL' AND oi.brand ILIKE '%turbo%' AND LOWER(oi.provider_name) <> 'foodologypos'
+    `SELECT kitchen_id, AVG(d) AS rtwt FROM (
+        SELECT kitchen_id,
+               GREATEST(0, DATEDIFF(second, GREATEST(provider_domiciliary_in_store, DATEADD(minute,5,order_received_at_local)), provider_delivered_to_domiciliary)/60.0) AS d
+          FROM fdgy_views.ontime_infull_order
+         WHERE company_id = '${CID}' AND order_date >= '${a}' AND order_date < '${b}' AND country = 'COL' AND brand ILIKE '%turbo%'
+           AND LOWER(provider_name) <> 'foodologypos'
+           AND provider_domiciliary_in_store IS NOT NULL AND provider_delivered_to_domiciliary IS NOT NULL)
+      WHERE d <= 30
       GROUP BY 1`))).rows;
   const out = {};
   rows.forEach((r) => { out[r.kitchen_id] = { tb: r2(Number(r.rtwt)) }; });
