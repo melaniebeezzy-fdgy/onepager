@@ -72,7 +72,7 @@ var TABS=[
  {id:'cp', ic:'🏭',label:'Trimestral Gerentes de CP',ph:'El esquema de este bono está por definir. Cuando tengas su estructura lo conectamos aquí.'}
 ];
 var country=null, tab='wow';
-function setCountry(c){country=c;renderApp();}
+function setCountry(c){country=c;if(!tabsFor(c).some(function(t){return t.id===tab;}))tab='wow';renderApp();}
 function pick(id){tab=id;syncHash();renderStage();renderTabs();}
 function syncHash(){location.hash=country+'/'+tab;}
 function renderApp(){
@@ -83,8 +83,10 @@ function renderApp(){
     return '<button class="'+(c===country?'active':'')+'" onclick="setCountry(\''+c+'\')">'+NAME[c]+'</button>';}).join('');
   renderTabs();renderStage();syncHash();
 }
+// Perú no tiene bono de Ops Manager ni de Gerentes de CP
+function tabsFor(c){return TABS.filter(function(t){return !(c==='PER'&&(t.id==='ops'||t.id==='cp'));});}
 function renderTabs(){
-  document.getElementById('tabbar').innerHTML=TABS.map(function(t){
+  document.getElementById('tabbar').innerHTML=tabsFor(country).map(function(t){
     return '<button class="'+(t.id===tab?'active':'')+'" onclick="pick(\''+t.id+'\')"><span>'+t.ic+'</span>'+t.label+'</button>';}).join('');
 }
 function renderStage(){
@@ -94,7 +96,7 @@ function renderStage(){
   else{st.innerHTML='<div class="ph"><div class="ic">🛠️</div><h2>'+t.label+' · '+NAME[country]+'</h2><p>'+t.ph+'</p></div>';}
 }
 // deep-link: #COL/jef
-(function(){var h=(location.hash||'').slice(1).split('/');if(h[0]&&NAME[h[0]]){country=h[0];if(h[1]&&TABS.some(function(t){return t.id===h[1];}))tab=h[1];renderApp();}})();
+(function(){var h=(location.hash||'').slice(1).split('/');if(h[0]&&NAME[h[0]]){country=h[0];if(h[1]&&tabsFor(h[0]).some(function(t){return t.id===h[1];}))tab=h[1];renderApp();}})();
 </script>
 </body>
 </html>
