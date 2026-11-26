@@ -2,7 +2,7 @@
 // POST { secret, metric, month }   metric: if | tb | gap | acc | rot   month: 10 | 11 | 12
 //
 //  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina (excluye provider foodologypos, igual que el sheet)
-//  tb   -> warehouse (RTWT Turbo, solo COL): entregada_a_domiciliario - max(domiciliario en tienda, recibida+5), piso 0; minutos enteros (DATEDIFF minute, igual que el dashboard Turbology); excluye nulos y valores > 30 min
+//  tb   -> warehouse (RTWT Turbo, solo COL): entregada_a_domiciliario - max(domiciliario en tienda, recibida+5), piso 0; misma consulta que api/agg.js del dashboard Turbology (Rappi, marcas Turbo, rtsum/rtcnt)
 //  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes (directo, sin validar contra el file)
 //  gap  -> Sheet del bono, pestaña GAP+ACC (la que se actualiza manualmente)
 //  rot  -> Sheet del bono, pestaña Rotacion (alimentada con la info de People)
@@ -110,17 +110,17 @@ async function mIF(m) {
 async function mTB(m) {
   const [a, b] = monthRange(m);
   const rows = (await withDb((c) => c.query(
-    `SELECT kitchen_id, AVG(CAST(d AS DOUBLE PRECISION)) AS rtwt FROM (
-        SELECT oi.kitchen_id,
-               GREATEST(0, DATEDIFF(minute, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)) AS d
-          FROM (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi
-          JOIN (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') o ON o.id = oi.order_id
-         WHERE o.order_day >= '${a}' AND o.order_day < '${b}' AND o.country = 'COL' AND o.brand ILIKE '%turbo%'
-           AND o.domiciliary_in_store IS NOT NULL AND oi.provider_delivered_to_domiciliary IS NOT NULL)
-      WHERE d <= 30
+    // Misma consulta que api/agg.js del dashboard Turbology: rtsum/rtcnt (suma y conteo de RTWT por orden, en segundos/60), sin tope
+    `SELECT o.kitchen_id,
+            SUM(GREATEST(0, DATEDIFF(second, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)/60.0)) AS rtsum,
+            COUNT(GREATEST(0, DATEDIFF(second, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)/60.0)) AS rtcnt
+       FROM (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') o
+       LEFT JOIN (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi ON oi.order_id = o.id
+      WHERE o.country = 'COL' AND o.provider_new_name = 'Rappi' AND o.brand ILIKE '%Turbo%'
+        AND o.order_day >= '${a}' AND o.order_day < '${b}'
       GROUP BY 1`))).rows;
   const out = {};
-  rows.forEach((r) => { out[r.kitchen_id] = { tb: r2(Number(r.rtwt)) }; });
+  rows.forEach((r) => { const n = Number(r.rtcnt); if (n > 0) out[r.kitchen_id] = { tb: r2(Number(r.rtsum) / n) }; });
   return out;
 }
 async function mACC(m) {
