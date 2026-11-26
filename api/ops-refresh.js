@@ -111,12 +111,12 @@ async function mTB(m) {
   const [a, b] = monthRange(m);
   const rows = (await withDb((c) => c.query(
     `SELECT kitchen_id, AVG(d) AS rtwt FROM (
-        SELECT kitchen_id,
-               GREATEST(0, DATEDIFF(second, GREATEST(provider_domiciliary_in_store, DATEADD(minute,5,order_received_at_local)), provider_delivered_to_domiciliary)/60.0) AS d
-          FROM fdgy_views.ontime_infull_order
-         WHERE company_id = '${CID}' AND order_date >= '${a}' AND order_date < '${b}' AND country = 'COL' AND brand ILIKE '%turbo%'
-           AND LOWER(provider_name) <> 'foodologypos'
-           AND provider_domiciliary_in_store IS NOT NULL AND provider_delivered_to_domiciliary IS NOT NULL)
+        SELECT oi.kitchen_id,
+               GREATEST(0, DATEDIFF(second, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)/60.0) AS d
+          FROM (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi
+          JOIN (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') o ON o.id = oi.order_id
+         WHERE o.order_day >= '${a}' AND o.order_day < '${b}' AND o.country = 'COL' AND o.brand ILIKE '%turbo%'
+           AND o.domiciliary_in_store IS NOT NULL AND oi.provider_delivered_to_domiciliary IS NOT NULL)
       WHERE d <= 30
       GROUP BY 1`))).rows;
   const out = {};
