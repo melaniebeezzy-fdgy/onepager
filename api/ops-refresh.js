@@ -2,7 +2,7 @@
 // POST { secret, metric, month }   metric: if | tb | gap | acc | rot   month: 10 | 11 | 12
 //
 //  if   -> warehouse (ontime_infull_order): 1 - quejas/ordenes por cocina (excluye provider foodologypos, igual que el sheet)
-//  tb   -> warehouse (RTWT Turbo, solo COL): entregada_a_domiciliario - max(domiciliario en tienda, recibida+5), piso 0; excluye nulos y valores > 30 min
+//  tb   -> warehouse (RTWT Turbo, solo COL): entregada_a_domiciliario - max(domiciliario en tienda, recibida+5), piso 0; minutos enteros (DATEDIFF minute, igual que el dashboard Turbology); excluye nulos y valores > 30 min
 //  acc  -> warehouse (counting_details): promedio de los conteos weekly+monthly del mes (directo, sin validar contra el file)
 //  gap  -> Sheet del bono, pestaña GAP+ACC (la que se actualiza manualmente)
 //  rot  -> Sheet del bono, pestaña Rotacion (alimentada con la info de People)
@@ -110,9 +110,9 @@ async function mIF(m) {
 async function mTB(m) {
   const [a, b] = monthRange(m);
   const rows = (await withDb((c) => c.query(
-    `SELECT kitchen_id, AVG(d) AS rtwt FROM (
+    `SELECT kitchen_id, AVG(CAST(d AS DOUBLE PRECISION)) AS rtwt FROM (
         SELECT oi.kitchen_id,
-               GREATEST(0, DATEDIFF(second, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)/60.0) AS d
+               GREATEST(0, DATEDIFF(minute, GREATEST(o.domiciliary_in_store, DATEADD(minute,5,o.order_date_local)), oi.provider_delivered_to_domiciliary)) AS d
           FROM (SELECT * FROM fdgy_views.ontime_infull_order WHERE company_id = '${CID}') oi
           JOIN (SELECT * FROM fdgy_views.orders_consolidado WHERE company_id = '${CID}') o ON o.id = oi.order_id
          WHERE o.order_day >= '${a}' AND o.order_day < '${b}' AND o.country = 'COL' AND o.brand ILIKE '%turbo%'
